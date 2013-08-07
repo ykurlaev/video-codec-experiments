@@ -1,0 +1,5 @@
+* Video Demystified
+* http://people.xiph.org/~xiphmont/demo/daala/demo1.shtml
+* http://en.wikipedia.org/wiki/Hadamard_transform
+* http://courses.graphicon.ru/main/mdc/lectures http://compression.graphicon.ru/
+* http://www.cs.cf.ac.uk/Dave/Multimedia/node200.html

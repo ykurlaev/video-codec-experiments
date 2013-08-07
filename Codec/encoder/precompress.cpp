@@ -33,17 +33,17 @@ size_t Precompress::operator()(const char *from, char *to, size_t size)
                 result++;
                 zeros = 0;
             }
-            bool sign = fromu[i] >> 7 == 1;
-            if(from[i] == (sign ? ~0 : 0)
-               && from[i + 1] >> 6 == (sign ? 0x3 : 0))
+            bool sign = fromu[i + 1] >> 7 == 1;
+            if(from[i + 1] == (sign ? ~0 : 0)
+               && from[i] >> 6 == (sign ? 0x3 : 0))
             {
-                tou[result] = fromu[i + 1] & 0x7F;
+                tou[result] = fromu[i] & 0x7F;
                 result++;
             }
             else
             {
-                tou[result] = (fromu[i] & 0x3F) | 0x80;
-                tou[result + 1] = fromu[i + 1];
+                tou[result] = (fromu[i + 1] & 0x3F) | 0x80;
+                tou[result + 1] = fromu[i];
                 result += 2;
             }
         }

@@ -25,13 +25,13 @@ void UnPrecompress::operator()(const char *from, char *to, size_t size)
             if(fromu[i] >> 7 == 0)
             {
                 uint8_t sign = (fromu[i] >> 6 == 1) ? ~0 : 0;
-                tou[out] = sign;
-                tou[out + 1] = (fromu[i] & 0x7F) | (sign & 0x80);
+                tou[out + 1] = sign;
+                tou[out] = (fromu[i] & 0x7F) | (sign & 0x80);
             }
             else
             {
-                tou[out] = (fromu[i] & 0x3F) | (((fromu[i] & 0x20) == 0) ? 0 : 0xC0);
-                tou[out + 1] = fromu[i + 1];
+                tou[out + 1] = (fromu[i] & 0x3F) | (((fromu[i] & 0x20) == 0) ? 0 : 0xC0);
+                tou[out] = fromu[i + 1];
                 i++;
             }
             out += 2;
