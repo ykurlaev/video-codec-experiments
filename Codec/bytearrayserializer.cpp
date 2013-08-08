@@ -1,10 +1,10 @@
 #include "bytearrayserializer.h"
-#include <exception>
+#include <stdexcept>
 
 namespace Codec
 {
 
-using std::exception;
+using std::runtime_error;
 
 ByteArraySerializer::ByteArraySerializer()
 {}
@@ -19,7 +19,7 @@ bool ByteArraySerializer::deserializeUint32(FILE *file, uint32_t &uint32)
     }
     if(n != 4)
     {
-        throw exception("Can't read input stream");
+        throw runtime_error("Can't read input stream");
     }
     uint32 = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24);
     return true;
@@ -27,25 +27,28 @@ bool ByteArraySerializer::deserializeUint32(FILE *file, uint32_t &uint32)
 
 void ByteArraySerializer::serializeUint32(uint32_t uint32, FILE *file)
 {
-    uint8_t bytes[4] = {uint32 & 0xFF, (uint32 >> 8) & 0xFF,
-                        (uint32 >> 16) & 0xFF, (uint32 >> 24) & 0xFF};
+    uint8_t bytes[4] = {static_cast<uint8_t>(uint32), static_cast<uint8_t>(uint32 >> 8),
+                        static_cast<uint8_t>(uint32 >> 16), static_cast<uint8_t>(uint32 >> 24)};
     size_t n = fwrite(bytes, 1, 4, file);
     if(n != 4)
     {
-        throw exception("Can't write output stream");
+        throw runtime_error("Can't write output stream");
     }
 }
 
-uint32_t ByteArraySerializer::deserializeByteArray(FILE *file, char *bytes, uint32_t maxSize)
+uint32_t ByteArraySerializer::deserializeByteArray(FILE *file, uint8_t *bytes, uint32_t maxSize, bool readSize)
 {
-    uint32_t size;
-    if(!deserializeUint32(file, size))
+    uint32_t size = maxSize;
+    if(readSize)
     {
-        return 0;
+        if(!deserializeUint32(file, size))
+        {
+            return 0;
+        }
     }
     if(size > maxSize)
     {
-        throw exception("Invalid format");
+        throw runtime_error("Invalid format");
     }
     if(size > 0)
     {
@@ -56,19 +59,22 @@ uint32_t ByteArraySerializer::deserializeByteArray(FILE *file, char *bytes, uint
         }
         if(n != size)
         {
-            throw exception("Can't read input stream");
+            throw runtime_error("Can't read input stream");
         }
     }
     return size;
 }
 
-void ByteArraySerializer::serializeByteArray(char *bytes, uint32_t size, FILE *file)
+void ByteArraySerializer::serializeByteArray(const uint8_t *bytes, uint32_t size, FILE *file, bool writeSize)
 {
-    serializeUint32(size, file);
+    if(writeSize)
+    {
+        serializeUint32(size, file);
+    }
     size_t n = fwrite(bytes, 1, size, file);
     if(n != size)
     {
-        throw exception("Can't write output stream");
+        throw runtime_error("Can't write output stream");
     }
 }
 

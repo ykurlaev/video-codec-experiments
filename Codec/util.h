@@ -1,8 +1,8 @@
 #ifndef CODEC_UTIL_H
 #define CODEC_UTIL_H
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
-#if _MSC_VER < 1600
+#include <cstddef>
+#if defined(_MSC_VER) && _MSC_VER < 1600
 typedef __int8 int8_t;
 typedef unsigned __int8 uint8_t;
 typedef __int16 int16_t;
@@ -11,10 +11,12 @@ typedef __int32 int32_t;
 typedef unsigned __int32 uint32_t;
 typedef __int64 int64_t;
 typedef unsigned __int64 uint64_t;
+//namespace std { namespace tr1 { } }
+//namespace tr1 = std::tr1;
 #else
 #include <cstdint>
-#endif
-#define ZLIB_WINAPI
+//namespace std { }
+//namespace tr1 = std;
 #endif
 
 namespace Codec
@@ -51,23 +53,26 @@ struct IntN<8>
     typedef int64_t s;
 };
 
-template <typename From, typename To>
-struct CopyConst
-{
-    typedef To t;
-};
+//template <typename From, typename To>
+//struct CopyConst
+//{
+//    typedef To t;
+//};
+//
+//template <typename From, typename To>
+//struct CopyConst<const From, To>
+//{
+//    typedef const To t;
+//};
 
-template <typename From, typename To>
-struct CopyConst<const From, To>
-{
-    typedef const To t;
-};
+template <bool B>
+struct StaticAssertion;
 
-template <typename T>
-struct ArrayDeleter
-{
-    void operator()(T *p) { delete[] p; }
-};
+template <>
+struct StaticAssertion<true>
+{};
+
+#define STATIC_ASSERT(B) (sizeof(StaticAssertion<(bool)(B)>) & 0)
 
 }
 

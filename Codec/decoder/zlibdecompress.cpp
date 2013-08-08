@@ -1,10 +1,10 @@
 #include "zlibdecompress.h"
-#include <exception>
+#include <stdexcept>
 
 namespace Codec
 {
 
-using std::exception;
+using std::runtime_error;
 
 ZlibDecompress::ZlibDecompress()
 {
@@ -14,16 +14,16 @@ ZlibDecompress::ZlibDecompress()
     inflateInit(&m_zStream);
 }
 
-size_t ZlibDecompress::operator()(char *from, char *to, size_t fromSize, size_t toSize)
+size_t ZlibDecompress::operator()(uint8_t *from, uint8_t *to, size_t fromSize, size_t toSize)
 {
-    m_zStream.next_in = reinterpret_cast<Bytef *>(from);
+    m_zStream.next_in = from;
     m_zStream.avail_in = fromSize;
-    m_zStream.next_out = reinterpret_cast<Bytef *>(to);
+    m_zStream.next_out = to;
     m_zStream.avail_out = toSize;
     inflate(&m_zStream, Z_SYNC_FLUSH);
     if(m_zStream.msg != NULL)
     {
-        throw exception(m_zStream.msg);
+        throw runtime_error(m_zStream.msg);
     }
     return toSize - m_zStream.avail_out;
 }

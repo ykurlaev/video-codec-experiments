@@ -1,134 +1,128 @@
 #include "decode.h"
 #include <cstdio>
+#include <cstring>
 #ifdef MEASURE_TIME
 #include <ctime>
 #endif
 #include <vector>
 #include <iostream>
+#include <algorithm>
 #include <exception>
-#include "../region/region.h"
+#include "../frame.h"
 #include "../bytearrayserializer.h"
+#include "../zigzagscan.h"
 #include "zlibdecompress.h"
 #include "unprecompress.h"
-#include "unreorder.h"
 #include "dequantize.h"
 #include "undct.h"
-#include "../frameserializer.h"
+#include "postundct.h"
 
 namespace Codec
 {
 
 using std::cerr;
+using std::vector;
+using std::copy;
 using std::exception;
 
 int decode(int argc, char *argv[])
 {
-    if(argc < 2)
+    try
     {
-        return 1;
-    }
-    FILE *in = fopen(argv[0], "rb");
-    if(!in)
-    {
-        cerr << "Error: Can't open input file " << argv[0] << "\n";
-        return 2;
-    }
-    FILE *out = fopen(argv[1], "wb");
-    if(!out)
-    {
-        cerr << "Error: Can't open output file " << argv[1] << "\n";
-        return 2;
-    }
-    bool silent = false;
-    if(argc > 3 && strncmp(argv[3], "-q", 3))
-    {
-        silent = true;
-    }
-    Region::coord_t width;
-    Region::coord_t height;
-    uint32_t quality;
-    uint32_t flat;
-    ByteArraySerializer byteArraySerializer;
-    byteArraySerializer.deserializeUint32(in, width);
-    byteArraySerializer.deserializeUint32(in, height);
-    byteArraySerializer.deserializeUint32(in, quality);
-    byteArraySerializer.deserializeUint32(in, flat);
-    Region::coord_t alignedWidth = (((width + 7) / 8) * 8);
-    Region::coord_t alignedHeight = (((height + 7) / 8) * 8);
-    std::vector<char> inBuffer(alignedWidth * alignedHeight * 2);
-    std::vector<char> tmpBuffer(alignedWidth * alignedHeight * 2);
-    std::vector<char> outBuffer(alignedWidth * alignedHeight * 2);
-    ZlibDecompress zlibDecompress;
-    UnPrecompress unPrecompress;
-    Unreorder<int16_t> unreorder;
-    Dequantize dequantize(flat != 0, static_cast<uint8_t>(quality));
-    UnDCT undct;
-    FrameSerializer frameSerializer(width, height);
-    RegionBuffer current(alignedWidth, alignedHeight);
-    Region frame(&current, 0, 0, width, height);
-    std::vector<Region> blocks;
-    for(Region::coord_t y = 0; y < alignedHeight / 8; y++)
-    {
-        for(Region::coord_t x = 0; x < alignedWidth / 8; x++)
+        if(argc < 2)
         {
-            blocks.push_back(Region(&current, x * 8, y * 8, 8, 8));
+            return 1;
         }
-    }
-    if(!silent)
-    {
-        cerr << width << "x" << height << "@"; 
-    }
-    cerr << quality << ((flat == 0) ? " non-flat\n" : " flat\n");
-    if(!silent)
-    {
-        cerr << "Decompressing... ";   
-    }
+        FILE *in = fopen(argv[0], "rb");
+        if(!in)
+        {
+            cerr << "Error: Can't open input file " << argv[0] << "\n";
+            return 2;
+        }
+        FILE *out = fopen(argv[1], "wb");
+        if(!out)
+        {
+            cerr << "Error: Can't open output file " << argv[1] << "\n";
+            return 2;
+        }
+        bool silent = false;
+        if(argc > 3 && !strncmp(argv[3], "-q", 3))
+        {
+            silent = true;
+        }
+        uint32_t uwidth;
+        uint32_t uheight;
+        uint32_t uquality;
+        uint32_t uflat;
+        ByteArraySerializer byteArraySerializer;
+        byteArraySerializer.deserializeUint32(in, uwidth);
+        byteArraySerializer.deserializeUint32(in, uheight);
+        byteArraySerializer.deserializeUint32(in, uquality);
+        byteArraySerializer.deserializeUint32(in, uflat);
+        Frame<8>::coord_t width = static_cast<Frame<8>::coord_t>(uwidth);
+        Frame<8>::coord_t height = static_cast<Frame<8>::coord_t>(uheight);
+        uint8_t quality = uquality & 0xFF;
+        bool flat = uflat != 0;
+        Frame<8> current(width, height, 16);
+        vector<uint8_t> uncompressed(current.getWidth() * current.getHeight());
+        vector<uint8_t> precompressed(current.getAlignedWidth() * current.getAlignedHeight() * UnPrecompress::MAX_BYTES);
+        vector<uint8_t> compressed(precompressed.size());
+        ZlibDecompress zlibDecompress;
+        const Frame<8>::coord_t *zigZagScan = ZigZagScan<8>::getScan();
+        UnPrecompress unPrecompress(&precompressed[0]);
+        Dequantize dequantize(flat, quality, ((1 << 8) * 8 * 8) / 2);
+        UnDCT undct;
+        PostUnDCT postUndct;
+        if(!silent)
+        {
+            cerr << width << "x" << height << "@"; 
+        }
+        cerr << static_cast<int>(quality) << (flat ? " flat\n" : " non-flat\n");
+        if(!silent)
+        {
+            cerr << "Decompressing... ";   
+        }
 #ifdef MEASURE_TIME
-    clock_t begin = clock();
+        clock_t begin = clock();
 #endif
-    for(unsigned count = 0; ; count++)
-    {
-        try
+        for(unsigned count = 0; ; count++)
         {
             if(!silent)
             {
                 cerr << count << " ";
             }
-            uint32_t compressedSize = byteArraySerializer.deserializeByteArray(in, &inBuffer[0], inBuffer.size());
+            uint32_t compressedSize = byteArraySerializer.deserializeByteArray(in, &compressed[0], compressed.size());
             if(compressedSize == 0)
             {
                 break;
             }
-            uint32_t precompressedSize = zlibDecompress(&inBuffer[0], &tmpBuffer[0], compressedSize, tmpBuffer.size());
-            unPrecompress(&tmpBuffer[0], &outBuffer[0], precompressedSize);
-            size_t i = 0;
-            current.clear();
-            for(Region::coord_t y = 0; y < alignedHeight / 8; y++)
+            zlibDecompress(&compressed[0], &precompressed[0], compressedSize, precompressed.size());
+            current.applyScanning(unPrecompress, zigZagScan);
+            if(unPrecompress.getOutputSize() != precompressed.size() / UnPrecompress::MAX_BYTES)
             {
-                for(Region::coord_t x = 0; x < alignedWidth / 8; x++)
-                {
-                    unreorder(&outBuffer[i * 8 * 8 * 2], blocks[i]);
-                    dequantize(blocks[i]);
-                    undct(blocks[i]);
-                    i++;
-                }
+                break;
             }
-            frameSerializer.serialize(frame, out);
+            current.apply(dequantize);
+            current.applyHorizontal(undct);
+            current.applyVertical(undct);
+            current.apply(postUndct);
+            copy(current.begin(), current.end(), uncompressed.begin());
+            byteArraySerializer.serializeByteArray(&uncompressed[0], uncompressed.size(), out, false);
         }
-        catch(const exception &e)
+        if(!silent)
         {
-            cerr << "\nError: " << e.what() << "\n";
-            return 2;
+            cerr << "Ok\n";
         }
-    }
-    if(!silent)
-    {
-        cerr << "Ok\n";
-    }
-#ifdef MEASURE_TIME
-    clock_t end = clock();
-    cerr << static_cast<double>(end - begin) / CLOCKS_PER_SEC << "\n";
+    #ifdef MEASURE_TIME
+        clock_t end = clock();
+        cerr << static_cast<double>(end - begin) / CLOCKS_PER_SEC << "\n";
 #endif
+    }
+    catch(const exception &e)
+    {
+        cerr << "\nError: " << e.what() << "\n";
+        return 2;
+    }
     return 0;
 }
 

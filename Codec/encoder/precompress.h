@@ -1,7 +1,6 @@
 #ifndef CODEC_PRECOMPRESS_H
 #define CODEC_PRECOMPRESS_H
 
-#include <cstddef>
 #include "../util.h"
 
 namespace Codec
@@ -10,11 +9,19 @@ namespace Codec
 class Precompress
 {
     public:
-        Precompress();
-        virtual size_t operator()(const char *from, char *to, size_t size);
-        virtual ~Precompress();
+        static const size_t MAX_BYTES = 2;
+        Precompress(uint8_t *output = NULL);
+        void setOutput(uint8_t *output);
+        size_t getOutputSize() const;
+        template <typename Iterator>
+        void operator()(Iterator begin, Iterator end);
+    private:
+        uint8_t *m_output;
+        size_t m_outputSize;
 };
 
 }
+
+#include "precompress.inl"
 
 #endif //CODEC_PRECOMPRESS_H

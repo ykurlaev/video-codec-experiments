@@ -12,7 +12,7 @@ class ZlibCompress
 {
     public:
         ZlibCompress(int level = Z_DEFAULT_COMPRESSION);
-        virtual size_t operator()(char *from, char *to, size_t fromSize, size_t toSize);
+        virtual size_t operator()(uint8_t *from, uint8_t *to, size_t fromSize, size_t toSize);
         virtual ~ZlibCompress();
     private:
         int m_level;
