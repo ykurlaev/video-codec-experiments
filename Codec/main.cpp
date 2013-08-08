@@ -2,11 +2,13 @@
 #include "encoder/encode.h"
 #include "decoder/decode.h"
 
+#include "frame.h"
+
 using namespace Codec;
 
 using std::cerr;
 
-static int usage(char *name)
+static int usage(const char *name)
 {
     cerr << "Usage: " << name << " -e <file.y> <width> <height> <file.compressed>\n";
     cerr << "       " << name << " -d <file.compressed> <file.y>\n";

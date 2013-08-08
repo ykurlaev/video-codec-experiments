@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;C:\Documents and Settings\Dmitry\My Documents\Codec\Codec\3rdparty&quot;"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="ZLIB_WINAPI;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				SmallerTypeCheck="true"
@@ -121,7 +121,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="&quot;C:\Documents and Settings\Dmitry\My Documents\Codec\Codec\3rdparty&quot;"
-				PreprocessorDefinitions="NDEBUG;MEASURE_TIME;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="ZLIB_WINAPI;NDEBUG;MEASURE_TIME;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -183,7 +183,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\frameserializer.cpp"
+				RelativePath=".\frame.inl"
 				>
 			</File>
 			<File
@@ -191,14 +191,14 @@
 				>
 			</File>
 			<File
-				RelativePath=".\decoder\unprecompress.cpp"
+				RelativePath=".\zigzagscan.inl"
 				>
 			</File>
 			<Filter
 				Name="encoder"
 				>
 				<File
-					RelativePath=".\Encoder\dct.cpp"
+					RelativePath=".\Encoder\dct.inl"
 					>
 				</File>
 				<File
@@ -206,15 +206,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\encoder\precompress.cpp"
+					RelativePath=".\encoder\precompress.inl"
 					>
 				</File>
 				<File
-					RelativePath=".\encoder\quantize.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\encoder\reorder.inl"
+					RelativePath=".\encoder\quantize.inl"
 					>
 				</File>
 				<File
@@ -230,31 +226,23 @@
 					>
 				</File>
 				<File
-					RelativePath=".\decoder\dequantize.cpp"
+					RelativePath=".\decoder\dequantize.inl"
 					>
 				</File>
 				<File
-					RelativePath=".\decoder\undct.cpp"
+					RelativePath=".\decoder\postundct.inl"
 					>
 				</File>
 				<File
-					RelativePath=".\decoder\unreorder.inl"
+					RelativePath=".\decoder\undct.inl"
+					>
+				</File>
+				<File
+					RelativePath=".\decoder\unprecompress.inl"
 					>
 				</File>
 				<File
 					RelativePath=".\decoder\zlibdecompress.cpp"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="region"
-				>
-				<File
-					RelativePath=".\region\region.inl"
-					>
-				</File>
-				<File
-					RelativePath=".\region\regionbuffer.inl"
 					>
 				</File>
 			</Filter>
@@ -269,15 +257,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\frameserializer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\decoder\unprecompress.h"
+				RelativePath=".\frame.h"
 				>
 			</File>
 			<File
 				RelativePath=".\util.h"
+				>
+			</File>
+			<File
+				RelativePath=".\zigzagscan.h"
 				>
 			</File>
 			<Filter
@@ -300,10 +288,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\Encoder\reorder.h"
-					>
-				</File>
-				<File
 					RelativePath=".\encoder\zlibcompress.h"
 					>
 				</File>
@@ -320,27 +304,19 @@
 					>
 				</File>
 				<File
+					RelativePath=".\decoder\postundct.h"
+					>
+				</File>
+				<File
 					RelativePath=".\decoder\undct.h"
 					>
 				</File>
 				<File
-					RelativePath=".\decoder\unreorder.h"
+					RelativePath=".\decoder\unprecompress.h"
 					>
 				</File>
 				<File
 					RelativePath=".\decoder\zlibdecompress.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="region"
-				>
-				<File
-					RelativePath=".\region\region.h"
-					>
-				</File>
-				<File
-					RelativePath=".\region\regionbuffer.h"
 					>
 				</File>
 			</Filter>

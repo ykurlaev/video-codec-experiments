@@ -1,35 +1,30 @@
-#include "quantize.h"
-#include <exception>
-//###DEBUG
-#include <iostream>
-//###
+#include <cassert>
+#include <stdexcept>
+////###DEBUG
+//#include <iostream>
+////###
 
 namespace Codec
 {
 
-//###DEBUG
-long long max_dc = 0;
-long long max_ac = 0;
-long long min_dc = 1000000000000000000;
-long long min_ac = 1000000000000000000;
-long long sum_dc = 0;
-long long sum_ac = 0;
-long long dcc = 0;
-long long acc = 0;
-//###
+////###DEBUG
+//long long max_dc = 0;
+//long long max_ac = 0;
+//long long min_dc = 1000000000000000000;
+//long long min_ac = 1000000000000000000;
+//long long sum_dc = 0;
+//long long sum_ac = 0;
+//long long dcc = 0;
+//long long acc = 0;
+////###
 
-using std::exception;
-
-Quantize::Quantize(bool flat, uint8_t param)
+inline Quantize::Quantize(bool flat, uint8_t param)
     : m_flat(flat), m_param(param)
 {}
 
-void Quantize::operator()(Region &region)
+template <typename Iterator>
+inline void Quantize::operator()(Iterator begin, Iterator end)
 {
-    if(region.getWidth() != 8 || region.getHeight() != 8)
-    {
-        throw exception("Region must be 8x8");
-    }
     //standatd JPEG quantization matrix
     static const uint8_t TABLE[] = { 16, 11, 10, 16, 24, 40, 51, 61,
                                      12, 12, 14, 19, 26, 58, 60, 55,
@@ -38,14 +33,22 @@ void Quantize::operator()(Region &region)
                                      18, 22, 37, 56, 68, 109, 103, 77,
                                      24, 35, 55, 64, 81, 104, 113, 92,
                                      49, 64, 78, 87, 103, 121, 120, 101,
-                                     72, 92, 95, 98, 112, 100, 103, 99};
-    size_t i = 0;
-    Region::data_t n = (m_param < 50) ? (5000 / m_param) : (200 - 2 * m_param);
-    for(Region::iterator it = region.begin(); it != region.end(); ++it)
+                                     72, 92, 95, 98, 112, 100, 103, 99 };
+    if(!m_flat)
     {
-        if(i == 0)
+        assert(sizeof(TABLE) / sizeof(*TABLE) == Iterator::BLOCK_SIZE * Iterator::BLOCK_SIZE);
+        if(m_param < 1 || m_param > 100)
         {
-            *it -= 8096;
+            throw std::runtime_error("Invalid quality value");
+        }
+    }
+    size_t i = 0;
+    typename Iterator::value_type n = (m_param < 50) ? (5000 / m_param) : (200 - 2 * m_param);
+    for(; begin != end; begin++)
+    {
+        if(i == 0) //normalize DC to 0
+        {
+            *begin -= (1 << Iterator::BLOCK_SIZE) * Iterator::BLOCK_SIZE * Iterator::BLOCK_SIZE / 2;
         }
         ////###DEBUG
         //if(i != 0)
@@ -77,17 +80,14 @@ void Quantize::operator()(Region &region)
         ////###
         if(m_flat)
         {
-            *it /= m_param;
+            *begin /= m_param;
         }
         else
         {
-            *it /= ((n * TABLE[i] + 500) / 100);
+            *begin /= ((n * TABLE[i] + 500) / 100);
         }
-        i++;
+        i = (i + 1) % (Iterator::BLOCK_SIZE * Iterator::BLOCK_SIZE);
     }
 }
-
-Quantize::~Quantize()
-{}
 
 }

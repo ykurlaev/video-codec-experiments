@@ -1,12 +1,12 @@
-#ifndef CODEC_UNDCT_H
-#define CODEC_UNDCT_H
+#ifndef CODEC_POSTUNDCT_H
+#define CODEC_POSTUNDCT_H
 
 #include "../util.h"
 
 namespace Codec
 {
 
-class UnDCT
+class PostUnDCT
 {
     public:
         template <typename Iterator>
@@ -15,6 +15,6 @@ class UnDCT
 
 }
 
-#include "undct.inl"
+#include "postundct.inl"
 
-#endif //CODEC_UNDCT_H
+#endif //CODEC_POSTUNDCT_H
