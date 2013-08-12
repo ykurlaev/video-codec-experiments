@@ -206,6 +206,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\encoder\findresidual.inl"
+					>
+				</File>
+				<File
 					RelativePath=".\encoder\precompress.inl"
 					>
 				</File>
@@ -222,6 +226,10 @@
 				Name="decoder"
 				>
 				<File
+					RelativePath=".\decoder\addresidual.inl"
+					>
+				</File>
+				<File
 					RelativePath=".\decoder\decode.cpp"
 					>
 				</File>
@@ -230,7 +238,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\decoder\postundct.inl"
+					RelativePath=".\decoder\normalize.inl"
 					>
 				</File>
 				<File
@@ -280,6 +288,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\encoder\findresidual.h"
+					>
+				</File>
+				<File
 					RelativePath=".\encoder\precompress.h"
 					>
 				</File>
@@ -296,6 +308,10 @@
 				Name="decoder"
 				>
 				<File
+					RelativePath=".\decoder\addresidual.h"
+					>
+				</File>
+				<File
 					RelativePath=".\decoder\decode.h"
 					>
 				</File>
@@ -304,7 +320,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\decoder\postundct.h"
+					RelativePath=".\decoder\normalize.h"
 					>
 				</File>
 				<File

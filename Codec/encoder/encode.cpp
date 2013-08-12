@@ -12,10 +12,15 @@
 #include "../frame.h"
 #include "../bytearrayserializer.h"
 #include "../zigzagscan.h"
+#include "findresidual.h"
 #include "dct.h"
 #include "quantize.h"
 #include "precompress.h"
 #include "zlibcompress.h"
+#include "../decoder/dequantize.h"
+#include "../decoder/undct.h"
+#include "../decoder/addresidual.h"
+#include "../decoder/normalize.h"
 
 namespace Codec
 {
@@ -24,7 +29,19 @@ using std::vector;
 using std::cerr;
 using std::istringstream;
 using std::copy;
+using std::swap;
 using std::exception;
+
+////###DEBUG
+//extern long long max_dc;
+//extern long long max_ac;
+//extern long long min_dc;
+//extern long long min_ac;
+//extern long long sum_ac;
+//extern long long sum_dc;
+//extern long long acc;
+//extern long long dcc;
+////###
 
 int encode(int argc, char *argv[])
 {
@@ -78,14 +95,20 @@ int encode(int argc, char *argv[])
         byteArraySerializer.serializeUint32(quality, out);
         byteArraySerializer.serializeUint32(flat ? 1 : 0, out);
         Frame<8> current(width, height, 16);
+        Frame<8> previous(width, height, 16);
         vector<uint8_t> uncompressed(current.getWidth() * current.getHeight());
         vector<uint8_t> precompressed(current.getAlignedWidth() * current.getAlignedHeight() * Precompress::MAX_BYTES);
         vector<uint8_t> compressed(precompressed.size());
+        FindResidual findResidual;
         DCT dct;
-        Quantize quantize(flat, quality, ((1 << 8) * 8 * 8) / 2);
+        Quantize quantize(flat, quality/*, ((1 << 8) * 8 * 8) / 2*/);
         const Frame<8>::coord_t *zigZagScan = ZigZagScan<8>::getScan();
         Precompress precompress(&precompressed[0]);
         ZlibCompress zlibCompress;
+        Dequantize dequantize(flat, quality/*, ((1 << 8) * 8 * 8) / 2*/);
+        UnDCT undct;
+        Normalize normalize;
+        AddResidual addResidual;
         if(!silent)
         {
             cerr << "Compressing... ";
@@ -99,6 +122,7 @@ int encode(int argc, char *argv[])
             {
                 cerr << count << " ";
             }
+            swap(current, previous);
             current.clear();
             if(byteArraySerializer.deserializeByteArray(in, &uncompressed[0], uncompressed.size(), false)
                != uncompressed.size())
@@ -106,18 +130,34 @@ int encode(int argc, char *argv[])
                 break;
             }
             copy(uncompressed.begin(), uncompressed.end(), current.begin());
-            current.applyHorizontal(dct);
-            current.applyVertical(dct);
-            current.apply(quantize);
-            current.applyScanning(precompress, zigZagScan);
+            findResidual(current.horizontalBegin(), current.horizontalEnd(),
+                         previous.horizontalBegin());
+            dct(current.horizontalBegin(), current.horizontalEnd());
+            dct(current.verticalBegin(), current.verticalEnd());
+            quantize(current.horizontalBegin(), current.horizontalEnd());
+            //quantize.setDcPred(0);
+            precompress(current.scanningBegin(zigZagScan), current.scanningEnd());
             uint32_t compressedSize = zlibCompress(&precompressed[0], &compressed[0],
                                                    precompress.getOutputSize(), compressed.size());
             byteArraySerializer.serializeByteArray(&compressed[0], compressedSize, out);
+            //###
+            dequantize(current.horizontalBegin(), current.horizontalEnd());
+            //dequantize.setDcPred(0);
+            undct(current.horizontalBegin(), current.horizontalEnd());
+            undct(current.verticalBegin(), current.verticalEnd());
+            addResidual(current.horizontalBegin(), current.horizontalEnd(),
+                        previous.horizontalBegin());
+            normalize(current.horizontalBegin(), current.horizontalEnd());
+            //###
         }
         if(!silent)
         {
             cerr << "Ok\n";
         }
+        //////###DEBUG
+        //cerr << " MinDC=" << min_dc << " MaxDC=" << max_dc << " AvgDC=" << sum_dc / static_cast<double>(dcc);
+        //cerr << " MinAC=" << min_ac << " MaxAC=" << max_ac << " AvgAC=" << sum_ac / static_cast<double>(acc);
+        //////###
 #ifdef MEASURE_TIME
         clock_t end = clock();
         cerr << static_cast<double>(end - begin) / CLOCKS_PER_SEC << "\n";

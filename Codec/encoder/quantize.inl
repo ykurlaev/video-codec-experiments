@@ -3,8 +3,19 @@
 namespace Codec
 {
 
-inline Quantize::Quantize(bool flat, uint8_t param, uint32_t dcNorm)
-    : m_flat(flat), m_param(param), m_dcNorm(dcNorm)
+////###DEBUG
+//long long max_dc = 0;
+//long long max_ac = 0;
+//long long min_dc = 1000000000000000000;
+//long long min_ac = 1000000000000000000;
+//long long sum_dc = 0;
+//long long sum_ac = 0;
+//long long dcc = 0;
+//long long acc = 0;
+////###
+
+inline Quantize::Quantize(bool flat, uint8_t param/*, Frame<>::data_t dcPred*/)
+    : m_flat(flat), m_param(param)/*, m_dcPred(dcPred)*/
 {
     if(m_param < 1 || (!m_flat && m_param > 100))
     {
@@ -28,6 +39,11 @@ inline Quantize::Quantize(bool flat, uint8_t param, uint32_t dcNorm)
         }
     }
 }
+//
+//inline void Quantize::setDcPred(Frame<>::data_t dcPred)
+//{
+//    m_dcPred = dcPred;
+//}
 
 template <typename Iterator>
 inline void Quantize::operator()(Iterator begin, Iterator end)
@@ -35,10 +51,42 @@ inline void Quantize::operator()(Iterator begin, Iterator end)
     size_t i = 0;
     for(; begin != end; ++begin)
     {
-        if(i == 0) //normalize DC to 0
-        {
-            *begin -= m_dcNorm;
-        }
+        //if(i == 0)
+        //{
+        //    //std::cerr << "\nQ: DC=" << *begin << ", pred=" << m_dcPred;
+        //    Frame<>::data_t tmp = *begin;
+        //    *begin -= m_dcPred;
+        //    m_dcPred = tmp;
+        //    //std::cerr << ", newDC=" << *begin << ", newpred=" << m_dcPred;
+        //}
+        ////###DEBUG
+        //if(i != 0)
+        //{
+        //    if(*begin > max_ac)
+        //    {
+        //        max_ac = *begin;
+        //    }
+        //    if(*begin < min_ac)
+        //    {
+        //        min_ac = *begin;
+        //    }
+        //    sum_ac += *begin;
+        //    acc += 1;
+        //}
+        //else
+        //{
+        //    if(*begin > max_dc)
+        //    {
+        //        max_dc = *begin;
+        //    }
+        //    if(*begin < min_dc)
+        //    {
+        //        min_dc = *begin;
+        //    }
+        //    sum_dc += *begin;
+        //    dcc += 1;
+        //}
+        ////###
         if(m_flat)
         {
             *begin /= m_param;

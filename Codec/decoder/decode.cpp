@@ -15,7 +15,8 @@
 #include "unprecompress.h"
 #include "dequantize.h"
 #include "undct.h"
-#include "postundct.h"
+#include "addresidual.h"
+#include "normalize.h"
 
 namespace Codec
 {
@@ -64,15 +65,17 @@ int decode(int argc, char *argv[])
         uint8_t quality = uquality & 0xFF;
         bool flat = uflat != 0;
         Frame<8> current(width, height, 16);
+        Frame<8> previous(width, height, 16);
         vector<uint8_t> uncompressed(current.getWidth() * current.getHeight());
         vector<uint8_t> precompressed(current.getAlignedWidth() * current.getAlignedHeight() * UnPrecompress::MAX_BYTES);
         vector<uint8_t> compressed(precompressed.size());
         ZlibDecompress zlibDecompress;
         const Frame<8>::coord_t *zigZagScan = ZigZagScan<8>::getScan();
         UnPrecompress unPrecompress(&precompressed[0]);
-        Dequantize dequantize(flat, quality, ((1 << 8) * 8 * 8) / 2);
+        Dequantize dequantize(flat, quality/*, ((1 << 8) * 8 * 8) / 2*/);
         UnDCT undct;
-        PostUnDCT postUndct;
+        Normalize normalize;
+        AddResidual addResidual;
         if(!silent)
         {
             cerr << width << "x" << height << "@"; 
@@ -97,15 +100,19 @@ int decode(int argc, char *argv[])
                 break;
             }
             zlibDecompress(&compressed[0], &precompressed[0], compressedSize, precompressed.size());
-            current.applyScanning(unPrecompress, zigZagScan);
+            swap(current, previous);
+            unPrecompress(current.scanningBegin(zigZagScan), current.scanningEnd());
             if(unPrecompress.getOutputSize() != precompressed.size() / UnPrecompress::MAX_BYTES)
             {
                 break;
             }
-            current.apply(dequantize);
-            current.applyHorizontal(undct);
-            current.applyVertical(undct);
-            current.apply(postUndct);
+            dequantize(current.horizontalBegin(), current.horizontalEnd());
+            //dequantize.setDcPred(0);
+            undct(current.horizontalBegin(), current.horizontalEnd());
+            undct(current.verticalBegin(), current.verticalEnd());
+            addResidual(current.horizontalBegin(), current.horizontalEnd(),
+                        previous.horizontalBegin());
+            normalize(current.horizontalBegin(), current.horizontalEnd());
             copy(current.begin(), current.end(), uncompressed.begin());
             byteArraySerializer.serializeByteArray(&uncompressed[0], uncompressed.size(), out, false);
         }

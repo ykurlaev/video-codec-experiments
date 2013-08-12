@@ -1,12 +1,12 @@
-#ifndef CODEC_POSTUNDCT_H
-#define CODEC_POSTUNDCT_H
+#ifndef CODEC_NORMALIZE_H
+#define CODEC_NORMALIZE_H
 
 #include "../util.h"
 
 namespace Codec
 {
 
-class PostUnDCT
+class Normalize
 {
     public:
         template <typename Iterator>
@@ -15,6 +15,6 @@ class PostUnDCT
 
 }
 
-#include "postundct.inl"
+#include "normalize.inl"
 
-#endif //CODEC_POSTUNDCT_H
+#endif //CODEC_NORMALIZE_H

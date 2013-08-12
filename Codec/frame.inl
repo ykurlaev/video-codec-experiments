@@ -64,37 +64,45 @@ inline typename Frame<N>::Iterator Frame<N>::begin()
 }
 
 template <uint32_t N>
-inline typename Frame<N>::Iterator Frame<N>::end() const
+inline typename Frame<N>::Iterator Frame<N>::end()
 {
     return Iterator();
 }
 
 template <uint32_t N>
-template <typename F>
-inline void Frame<N>::apply(F &f)
+inline typename Frame<N>::HorizontalIterator Frame<N>::horizontalBegin()
 {
-    applyHorizontal(f);
+    return HorizontalIterator(&m_data[0]);
 }
 
 template <uint32_t N>
-template <typename F>
-inline void Frame<N>::applyHorizontal(F &f)
+inline typename Frame<N>::HorizontalIterator Frame<N>::horizontalEnd()
 {
-    f(HorizontalIterator(&m_data[0]), HorizontalIterator(&m_data[0] + m_data.size()));
+    return HorizontalIterator(&m_data[0] + m_data.size());
 }
 
 template <uint32_t N>
-template <typename F>
-inline void Frame<N>::applyVertical(F &f)
+inline typename Frame<N>::VerticalIterator Frame<N>::verticalBegin()
 {
-    f(VerticalIterator(&m_data[0], m_data.size() / (BLOCK_SIZE * BLOCK_SIZE)), VerticalIterator());
+    return VerticalIterator(&m_data[0], m_data.size() / (BLOCK_SIZE * BLOCK_SIZE));
 }
 
 template <uint32_t N>
-template <typename F>
-inline void Frame<N>::applyScanning(F &f, const coord_t *scan)
+inline typename Frame<N>::VerticalIterator Frame<N>::verticalEnd()
 {
-    f(ScanningIterator(&m_data[0], m_data.size() / (BLOCK_SIZE * BLOCK_SIZE), scan), ScanningIterator());
+    return VerticalIterator();
+}
+
+template <uint32_t N>
+inline typename Frame<N>::ScanningIterator Frame<N>::scanningBegin(const coord_t *scan)
+{
+    return ScanningIterator(&m_data[0], m_data.size() / (BLOCK_SIZE * BLOCK_SIZE), scan);
+}
+
+template <uint32_t N>
+inline typename Frame<N>::ScanningIterator Frame<N>::scanningEnd()
+{
+    return ScanningIterator();
 }
 
 template <uint32_t N>

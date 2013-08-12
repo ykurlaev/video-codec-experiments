@@ -8,7 +8,7 @@
 namespace Codec
 {
 
-template <uint32_t N>
+template <uint32_t N = 0>
 class Frame
 {
     private:
@@ -30,23 +30,21 @@ class Frame
         coord_t getAlignedHeight() const;
         void clear();
         Iterator begin();
-        Iterator end() const;
-        template <typename F>
-        void apply(F &f);
-        template <typename F>
-        void applyHorizontal(F &f);
-        template <typename F>
-        void applyVertical(F &f);
-        template <typename F>
-        void applyScanning(F &f, const coord_t *scan);
+        Iterator end();
+        HorizontalIterator horizontalBegin();
+        HorizontalIterator horizontalEnd();
+        VerticalIterator verticalBegin();
+        VerticalIterator verticalEnd();
+        ScanningIterator scanningBegin(const coord_t *scan);
+        ScanningIterator scanningEnd();
     private:
         coord_t m_width;
         coord_t m_height;
         coord_t m_alignedWidth;
         coord_t m_alignedHeight;
         std::vector<data_t> m_data;
-        template <uint32_t>
-        friend void swap(Frame &first, Frame &second);
+        template <uint32_t M>
+        friend void swap(Frame<M> &first, Frame<M> &second);
 };
 
 template <uint32_t N>

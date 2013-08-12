@@ -3,8 +3,8 @@
 namespace Codec
 {
 
-inline Dequantize::Dequantize(bool flat, uint8_t param, uint32_t dcNorm)
-    : m_flat(flat), m_param(param), m_dcNorm(dcNorm)
+inline Dequantize::Dequantize(bool flat, uint8_t param/*, Frame<>::data_t dcPred*/)
+    : m_flat(flat), m_param(param)/*, m_dcPred(dcPred)*/
 {
     if(m_param < 1 || (!m_flat && m_param > 100))
     {
@@ -28,6 +28,11 @@ inline Dequantize::Dequantize(bool flat, uint8_t param, uint32_t dcNorm)
         }
     }
 }
+//
+//inline void Dequantize::setDcPred(Frame<>::data_t dcPred)
+//{
+//    m_dcPred = dcPred;
+//}
 
 template <typename Iterator>
 inline void Dequantize::operator()(Iterator begin, Iterator end)
@@ -43,10 +48,13 @@ inline void Dequantize::operator()(Iterator begin, Iterator end)
         {
             *begin *= m_table[i];
         }
-        if(i == 0)
-        {
-            *begin += m_dcNorm;
-        }
+        //if(i == 0)
+        //{
+        //    //std::cerr << "\nD: DC=" << *begin << ", pred=" << m_dcPred;
+        //    *begin += m_dcPred;
+        //    m_dcPred = *begin;
+        //    //std::cerr << ", newDC=" << *begin << ", newpred=" << m_dcPred;
+        //}
         i = (i + 1) % (sizeof(m_table) / sizeof(*m_table));
     }
 }

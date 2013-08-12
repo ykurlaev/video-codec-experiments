@@ -9,13 +9,15 @@ namespace Codec
 class Dequantize
 {
     public:
-        Dequantize(bool flat, uint8_t param, uint32_t dcNorm);
+        Dequantize(bool flat, uint8_t param/*, Frame<>::data_t dcPred = 0*/);
+        void setDcPred(Frame<>::data_t dcPred);
         template <typename Iterator>
         void operator()(Iterator begin, Iterator end);
     private:
         bool m_flat;
         uint8_t m_param;
-        uint32_t m_dcNorm;
+        //Frame<>::data_t m_dcPred;
+        bool m_np;
         int m_table[64];
 };
 
