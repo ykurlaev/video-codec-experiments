@@ -230,12 +230,13 @@ template <uint32_t N>
 inline typename Frame<N>::VerticalIterator &Frame<N>::VerticalIterator::operator++()
 {
     m_y++;
-    if(m_y % N == 0)
+    if(m_y == N)
     {
         m_y = 0;
         m_x++;
-        if(m_x % N == 0)
+        if(m_x == N)
         {
+            m_x = 0;
             m_block++;
             if(m_block == m_count)
             {

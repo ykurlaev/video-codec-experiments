@@ -1,6 +1,7 @@
 #ifndef CODEC_DEQUANTIZE_H
 #define CODEC_DEQUANTIZE_H
 
+//#include "../frame.h"
 #include "../util.h"
 
 namespace Codec
@@ -10,7 +11,7 @@ class Dequantize
 {
     public:
         Dequantize(bool flat, uint8_t param/*, Frame<>::data_t dcPred = 0*/);
-        void setDcPred(Frame<>::data_t dcPred);
+//        void setDcPred(Frame<>::data_t dcPred);
         template <typename Iterator>
         void operator()(Iterator begin, Iterator end);
     private:

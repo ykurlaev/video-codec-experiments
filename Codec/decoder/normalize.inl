@@ -1,3 +1,5 @@
+#include <iterator>
+
 namespace Codec
 {
 
@@ -6,7 +8,7 @@ inline void Normalize::operator()(Iterator begin, Iterator end)
 {
     for(; begin != end; ++begin)
     {
-        typename Iterator::value_type t = *begin;
+        typename std::iterator_traits<Iterator>::value_type t = *begin;
         if(t < 0)
         {
             t = 0;

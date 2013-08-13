@@ -1,14 +1,16 @@
 #include <cassert>
+#include <iterator>
 
 namespace Codec
 {
 
-#define CODEC_UNDCT_FLIP(x, y) { typename Iterator::value_type t = x; x = x + y; y = t - y; }
+#define CODEC_UNDCT_FLIP(x, y) \
+    { typename std::iterator_traits<Iterator>::value_type t = x; x = x + y; y = t - y; }
 
 //see BinDCT.pdf
 #define CODEC_UNDCT(A, B, C, D, E, F, G, H) \
 { \
-    typename Iterator::value_type t = g; \
+    typename std::iterator_traits<Iterator>::value_type t = g; \
     g = d; \
     d = c; \
     c = t; \
@@ -42,28 +44,28 @@ inline void UnDCT::operator()(Iterator begin, Iterator end)
 {
     while(begin != end)
     {
-        typename Iterator::reference a = *begin;
+        typename std::iterator_traits<Iterator>::reference a = *begin;
         ++begin;
         assert(begin != end);
-        typename Iterator::reference b = *begin;
+        typename std::iterator_traits<Iterator>::reference b = *begin;
         ++begin;
         assert(begin != end);
-        typename Iterator::reference c = *begin;
+        typename std::iterator_traits<Iterator>::reference c = *begin;
         ++begin;
         assert(begin != end);
-        typename Iterator::reference d = *begin;
+        typename std::iterator_traits<Iterator>::reference d = *begin;
         ++begin;
         assert(begin != end);
-        typename Iterator::reference e = *begin;
+        typename std::iterator_traits<Iterator>::reference e = *begin;
         ++begin;
         assert(begin != end);
-        typename Iterator::reference f = *begin;
+        typename std::iterator_traits<Iterator>::reference f = *begin;
         ++begin;
         assert(begin != end);
-        typename Iterator::reference g = *begin;
+        typename std::iterator_traits<Iterator>::reference g = *begin;
         ++begin;
         assert(begin != end);
-        typename Iterator::reference h = *begin;
+        typename std::iterator_traits<Iterator>::reference h = *begin;
         ++begin;
         assert(begin != end);
         CODEC_UNDCT(a, b, c, d, e, f, g, h);

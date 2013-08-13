@@ -11,7 +11,7 @@ class Quantize
 {
     public:
         Quantize(bool flat, uint8_t param/*, Frame<>::data_t dcPred = 0*/);
-        void setDcPred(Frame<>::data_t dcPred);
+//        void setDcPred(Frame<>::data_t dcPred);
         template <typename Iterator>
         void operator()(Iterator begin, Iterator end);
     private:
