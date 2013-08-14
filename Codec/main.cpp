@@ -2,6 +2,7 @@
 #include "encoder/encode.h"
 #include "decoder/decode.h"
 
+#include <time.h>
 #include <math.h>
 #include "encoder/dct.h"
 #include "encoder/quantize.h"
@@ -273,12 +274,25 @@ int main(int argc, char *argv[])
                    255, 191, 127,  63,
                    255, 191, 127,  63 };
     f(4, t4);*/
-    int t1[3] = { 255, 0, 0 };
-    int t2[4] = { 255, 0, 0, 0 };
-    int t3[3] = { 255, 170, 85 };
-    int t4[4] = { 255, 191, 127, 63 };
-    f1(3, t1);
-    f1(4, t2);
+    srand(time(NULL));
+    int t1[1] = { rand() % 256 };
+    int t2[2] = { rand() % 256, rand() % 256 };
+    int t3[3] = { rand() % 256, rand() % 256, rand() % 256 };
+    int t4[4] = { rand() % 256, rand() % 256, rand() % 256, rand() % 256 };
+    int t5[5] = { rand() % 256, rand() % 256, rand() % 256, rand() % 256,
+                  rand() % 256 };
+    int t6[6] = { rand() % 256, rand() % 256, rand() % 256, rand() % 256,
+                  rand() % 256, rand() % 256 };
+    int t7[7] = { rand() % 256, rand() % 256, rand() % 256, rand() % 256,
+                  rand() % 256, rand() % 256, rand() % 256 };
+    int t8[8] = { rand() % 256, rand() % 256, rand() % 256, rand() % 256,
+                  rand() % 256, rand() % 256, rand() % 256, rand() % 256 };
+    f1(1, t1);
+    f1(2, t2);
     f1(3, t3);
     f1(4, t4);
+    f1(5, t5);
+    f1(6, t6);
+    f1(7, t7);
+    f1(8, t8);
 }
