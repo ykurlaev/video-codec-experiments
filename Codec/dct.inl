@@ -8,7 +8,7 @@ namespace Codec
     { typename std::iterator_traits<Iterator>::value_type t = x; x = x + y; y = t - y; }
 
 //see BinDCT.pdf
-#define CODEC_DCT_FORWARD(A, B, C, D, E, F, G, H) \
+#define CODEC_DCT_FORWARD(a, b, c, d, e, f, g, h) \
 { \
     CODEC_DCT_FLIP(a, h); \
     CODEC_DCT_FLIP(b, g); \
@@ -39,7 +39,7 @@ namespace Codec
     g = t; \
 }
 
-#define CODEC_DCT_REVERSE(A, B, C, D, E, F, G, H) \
+#define CODEC_DCT_REVERSE(a, b, c, d, e, f, g, h) \
 { \
     typename std::iterator_traits<Iterator>::value_type t = g; \
     g = d; \
@@ -75,31 +75,14 @@ inline void DCT::applyForward(Iterator begin, Iterator end)
 {
     while(begin != end)
     {
-        typename std::iterator_traits<Iterator>::reference a = *begin;
-        ++begin;
-        assert(begin != end);
-        typename std::iterator_traits<Iterator>::reference b = *begin;
-        ++begin;
-        assert(begin != end);
-        typename std::iterator_traits<Iterator>::reference c = *begin;
-        ++begin;
-        assert(begin != end);
-        typename std::iterator_traits<Iterator>::reference d = *begin;
-        ++begin;
-        assert(begin != end);
-        typename std::iterator_traits<Iterator>::reference e = *begin;
-        ++begin;
-        assert(begin != end);
-        typename std::iterator_traits<Iterator>::reference f = *begin;
-        ++begin;
-        assert(begin != end);
-        typename std::iterator_traits<Iterator>::reference g = *begin;
-        ++begin;
-        assert(begin != end);
-        typename std::iterator_traits<Iterator>::reference h = *begin;
-        ++begin;
-        assert(begin != end);
-        CODEC_DCT_FORWARD(a, b, c, d, e, f, g, h);
+        typename std::iterator_traits<Iterator>::pointer ps[8];
+        for(int i = 0; i < 8; i++)
+        {
+            ps[i] = &*begin;
+            ++begin;
+            assert(begin != end);
+        }
+        CODEC_DCT_FORWARD(*ps[0], *ps[1], *ps[2], *ps[3], *ps[4], *ps[5], *ps[6], *ps[7]);
     }
 }
 
@@ -108,39 +91,18 @@ inline void DCT::applyReverse(Iterator begin, Iterator end)
 {
     while(begin != end)
     {
-        typename std::iterator_traits<Iterator>::reference a = *begin;
-        ++begin;
-        assert(begin != end);
-        typename std::iterator_traits<Iterator>::reference b = *begin;
-        ++begin;
-        assert(begin != end);
-        typename std::iterator_traits<Iterator>::reference c = *begin;
-        ++begin;
-        assert(begin != end);
-        typename std::iterator_traits<Iterator>::reference d = *begin;
-        ++begin;
-        assert(begin != end);
-        typename std::iterator_traits<Iterator>::reference e = *begin;
-        ++begin;
-        assert(begin != end);
-        typename std::iterator_traits<Iterator>::reference f = *begin;
-        ++begin;
-        assert(begin != end);
-        typename std::iterator_traits<Iterator>::reference g = *begin;
-        ++begin;
-        assert(begin != end);
-        typename std::iterator_traits<Iterator>::reference h = *begin;
-        ++begin;
-        assert(begin != end);
-        CODEC_DCT_REVERSE(a, b, c, d, e, f, g, h);
-        a /= 4;
-        b /= 4;
-        c /= 4;
-        d /= 4;
-        e /= 4;
-        f /= 4;
-        g /= 4;
-        h /= 4;
+        typename std::iterator_traits<Iterator>::pointer ps[8];
+        for(int i = 0; i < 8; i++)
+        {
+            ps[i] = &*begin;
+            ++begin;
+            assert(begin != end);
+        }
+        CODEC_DCT_FORWARD(*ps[0], *ps[1], *ps[2], *ps[3], *ps[4], *ps[5], *ps[6], *ps[7]);
+        for(int i = 0; i < 8; i++)
+        {
+            *ps[i] /= 4;
+        }
     }
 }
 
