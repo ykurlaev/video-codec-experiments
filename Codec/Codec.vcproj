@@ -183,6 +183,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dct.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\decoder.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\encoder.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\frame.inl"
 				>
 			</File>
@@ -191,69 +203,33 @@
 				>
 			</File>
 			<File
+				RelativePath=".\normalize.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\precompressor.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\predictor.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\quantization.inl"
+				>
+			</File>
+			<File
 				RelativePath=".\zigzagscan.inl"
 				>
 			</File>
-			<Filter
-				Name="encoder"
+			<File
+				RelativePath=".\zlibcompress.cpp"
 				>
-				<File
-					RelativePath=".\Encoder\dct.inl"
-					>
-				</File>
-				<File
-					RelativePath=".\encoder\encode.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\encoder\findresidual.inl"
-					>
-				</File>
-				<File
-					RelativePath=".\encoder\precompress.inl"
-					>
-				</File>
-				<File
-					RelativePath=".\encoder\quantize.inl"
-					>
-				</File>
-				<File
-					RelativePath=".\encoder\zlibcompress.cpp"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="decoder"
+			</File>
+			<File
+				RelativePath=".\zlibdecompress.cpp"
 				>
-				<File
-					RelativePath=".\decoder\addresidual.inl"
-					>
-				</File>
-				<File
-					RelativePath=".\decoder\decode.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\decoder\dequantize.inl"
-					>
-				</File>
-				<File
-					RelativePath=".\decoder\normalize.inl"
-					>
-				</File>
-				<File
-					RelativePath=".\decoder\undct.inl"
-					>
-				</File>
-				<File
-					RelativePath=".\decoder\unprecompress.inl"
-					>
-				</File>
-				<File
-					RelativePath=".\decoder\zlibdecompress.cpp"
-					>
-				</File>
-			</Filter>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -265,7 +241,35 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dct.h"
+				>
+			</File>
+			<File
+				RelativePath=".\decoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\encoder.h"
+				>
+			</File>
+			<File
 				RelativePath=".\frame.h"
+				>
+			</File>
+			<File
+				RelativePath=".\normalize.h"
+				>
+			</File>
+			<File
+				RelativePath=".\precompressor.h"
+				>
+			</File>
+			<File
+				RelativePath=".\predictor.h"
+				>
+			</File>
+			<File
+				RelativePath=".\quantization.h"
 				>
 			</File>
 			<File
@@ -276,72 +280,14 @@
 				RelativePath=".\zigzagscan.h"
 				>
 			</File>
-			<Filter
-				Name="encoder"
+			<File
+				RelativePath=".\zlibcompress.h"
 				>
-				<File
-					RelativePath=".\Encoder\dct.h"
-					>
-				</File>
-				<File
-					RelativePath=".\encoder\encode.h"
-					>
-				</File>
-				<File
-					RelativePath=".\encoder\findresidual.h"
-					>
-				</File>
-				<File
-					RelativePath=".\encoder\precompress.h"
-					>
-				</File>
-				<File
-					RelativePath=".\Encoder\quantize.h"
-					>
-				</File>
-				<File
-					RelativePath=".\encoder\zlibcompress.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="decoder"
+			</File>
+			<File
+				RelativePath=".\zlibdecompress.h"
 				>
-				<File
-					RelativePath=".\decoder\addresidual.h"
-					>
-				</File>
-				<File
-					RelativePath=".\decoder\decode.h"
-					>
-				</File>
-				<File
-					RelativePath=".\decoder\dequantize.h"
-					>
-				</File>
-				<File
-					RelativePath=".\decoder\normalize.h"
-					>
-				</File>
-				<File
-					RelativePath=".\decoder\undct.h"
-					>
-				</File>
-				<File
-					RelativePath=".\decoder\unprecompress.h"
-					>
-				</File>
-				<File
-					RelativePath=".\decoder\zlibdecompress.h"
-					>
-				</File>
-			</Filter>
-		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-			>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

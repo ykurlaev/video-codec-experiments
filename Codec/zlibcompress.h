@@ -1,9 +1,8 @@
 #ifndef CODEC_ZLIBCOMPRESS_H
 #define CODEC_ZLIBCOMPRESS_H
 
-#include <cstddef>
-#include "../util.h"
 #include <zlib.h>
+#include "util.h"
 
 namespace Codec
 {

@@ -3,8 +3,8 @@
 namespace Codec
 {
 
-inline Dequantize::Dequantize(bool flat, uint8_t param/*, Frame<>::data_t dcPred*/)
-    : m_flat(flat), m_param(param)/*, m_dcPred(dcPred)*/
+inline Quantization::Quantization(bool flat, uint8_t param)
+    : m_flat(flat), m_param(param)
 {
     if(m_param < 1 || (!m_flat && m_param > 100))
     {
@@ -28,14 +28,27 @@ inline Dequantize::Dequantize(bool flat, uint8_t param/*, Frame<>::data_t dcPred
         }
     }
 }
-//
-//inline void Dequantize::setDcPred(Frame<>::data_t dcPred)
-//{
-//    m_dcPred = dcPred;
-//}
 
 template <typename Iterator>
-inline void Dequantize::operator()(Iterator begin, Iterator end)
+inline void Quantization::applyForward(Iterator begin, Iterator end)
+{
+    size_t i = 0;
+    for(; begin != end; ++begin)
+    {
+        if(m_flat)
+        {
+            *begin /= m_param;
+        }
+        else
+        {
+            *begin /= m_table[i];
+        }
+        i = (i + 1) % (sizeof(m_table) / sizeof(*m_table));
+    }
+}
+
+template <typename Iterator>
+inline void Quantization::applyReverse(Iterator begin, Iterator end)
 {
     size_t i = 0;
     for(; begin != end; ++begin)
@@ -48,13 +61,6 @@ inline void Dequantize::operator()(Iterator begin, Iterator end)
         {
             *begin *= m_table[i];
         }
-        //if(i == 0)
-        //{
-        //    //std::cerr << "\nD: DC=" << *begin << ", pred=" << m_dcPred;
-        //    *begin += m_dcPred;
-        //    m_dcPred = *begin;
-        //    //std::cerr << ", newDC=" << *begin << ", newpred=" << m_dcPred;
-        //}
         i = (i + 1) % (sizeof(m_table) / sizeof(*m_table));
     }
 }

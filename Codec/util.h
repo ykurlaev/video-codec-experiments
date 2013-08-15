@@ -11,18 +11,14 @@ typedef __int32 int32_t;
 typedef unsigned __int32 uint32_t;
 typedef __int64 int64_t;
 typedef unsigned __int64 uint64_t;
-//namespace std { namespace tr1 { } }
-//namespace tr1 = std::tr1;
 #else
 #include <cstdint>
-//namespace std { }
-//namespace tr1 = std;
 #endif
 
 namespace Codec
 {
 
-template <int N>
+template <size_t N>
 struct IntN;
 
 template <>
@@ -53,26 +49,17 @@ struct IntN<8>
     typedef int64_t s;
 };
 
-//template <typename From, typename To>
-//struct CopyConst
-//{
-//    typedef To t;
-//};
-//
-//template <typename From, typename To>
-//struct CopyConst<const From, To>
-//{
-//    typedef const To t;
-//};
+template <typename T>
+struct MakeSigned
+{
+    typedef typename IntN<sizeof(T)>::s t;
+};
 
-template <bool B>
-struct StaticAssertion;
-
-template <>
-struct StaticAssertion<true>
-{};
-
-#define STATIC_ASSERT(B) (sizeof(StaticAssertion<(bool)(B)>) & 0)
+template <typename T>
+struct MakeUnsigned
+{
+    typedef typename IntN<sizeof(T)>::u t;
+};
 
 }
 

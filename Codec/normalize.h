@@ -1,7 +1,7 @@
 #ifndef CODEC_NORMALIZE_H
 #define CODEC_NORMALIZE_H
 
-#include "../util.h"
+#include "util.h"
 
 namespace Codec
 {

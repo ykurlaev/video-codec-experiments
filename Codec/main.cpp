@@ -1,6 +1,6 @@
 #include <iostream>
-#include "encoder/encode.h"
-#include "decoder/decode.h"
+#include "encoder.h"
+#include "decoder.h"
 
 #include "frame.h"
 
