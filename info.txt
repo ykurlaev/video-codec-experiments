@@ -3,3 +3,5 @@
 * http://en.wikipedia.org/wiki/Hadamard_transform
 * http://courses.graphicon.ru/main/mdc/lectures http://compression.graphicon.ru/
 * http://www.cs.cf.ac.uk/Dave/Multimedia/node200.html
+* http://faculty.cua.edu/wangz/download_3d-dct.htm
+* http://stday2010.uniud.it/stday2010/papers_files/stday2010_submission_6_1.ppt
