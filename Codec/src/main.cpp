@@ -1,8 +1,7 @@
+#include <cstring>
 #include <iostream>
-#include "encoder.h"
-#include "decoder.h"
-
-#include "frame.h"
+#include "lib/encoder.h"
+#include "lib/decoder.h"
 
 using namespace Codec;
 

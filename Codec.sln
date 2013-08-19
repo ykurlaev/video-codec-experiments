@@ -5,6 +5,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Codec", "Codec\Codec.vcproj
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PSNR", "PSNR\PSNR.vcproj", "{55B0589A-0DFF-4AC4-B37E-10CD15C91CD3}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CodecLibrary", "Codec\CodecLibrary.vcproj", "{DA364BC9-8196-4D1D-A6DF-F8756CAFB8DF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CodecTest", "Codec\CodecTest.vcproj", "{2B622C3E-5B06-4EE0-B724-8F60A046CFB8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -19,6 +23,14 @@ Global
 		{55B0589A-0DFF-4AC4-B37E-10CD15C91CD3}.Debug|Win32.Build.0 = Debug|Win32
 		{55B0589A-0DFF-4AC4-B37E-10CD15C91CD3}.Release|Win32.ActiveCfg = Release|Win32
 		{55B0589A-0DFF-4AC4-B37E-10CD15C91CD3}.Release|Win32.Build.0 = Release|Win32
+		{DA364BC9-8196-4D1D-A6DF-F8756CAFB8DF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DA364BC9-8196-4D1D-A6DF-F8756CAFB8DF}.Debug|Win32.Build.0 = Debug|Win32
+		{DA364BC9-8196-4D1D-A6DF-F8756CAFB8DF}.Release|Win32.ActiveCfg = Release|Win32
+		{DA364BC9-8196-4D1D-A6DF-F8756CAFB8DF}.Release|Win32.Build.0 = Release|Win32
+		{2B622C3E-5B06-4EE0-B724-8F60A046CFB8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2B622C3E-5B06-4EE0-B724-8F60A046CFB8}.Debug|Win32.Build.0 = Debug|Win32
+		{2B622C3E-5B06-4EE0-B724-8F60A046CFB8}.Release|Win32.ActiveCfg = Release|Win32
+		{2B622C3E-5B06-4EE0-B724-8F60A046CFB8}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,10 +1,16 @@
-SOURCES := $(wildcard *.cpp)
+SOURCES := $(wildcard src/*.cpp)
 OBJECTS := $(SOURCES:.cpp=.o)
 BINARY ?= Codec.exe
+LIBRARYSOURCES := $(wildcard src/lib/*.cpp)
+LIBRARYOBJECTS := $(LIBRARYSOURCES:.cpp=.o)
+LIBRARY ?= libCodec.a
+TESTSOURCES := $(wildcard test/*.cpp)
+TESTOBJECTS := $(TESTSOURCES:.cpp=.o)
+TESTBINARY ?= CodecTest.exe
 
 NDEBUG ?= -DNDEBUG
-MEASURE_TIME ?= -DMEASURE_TIME
-EXTRA_DEFINES ?=
+MEASURETIME ?= -DMEASURE_TIME
+EXTRADEFINES ?=
 DEFINES := $(NDEBUG) $(MEASURE_TIME) $(EXTRA_DEFINES)
 
 LTO ?= -flto # run "LTO='' make" if -flto cause error
@@ -13,14 +19,21 @@ LDFLAGS ?= $(LTO) -g
 LIBS := -lz
 
 MAKEDEPENDSFLAG ?= -MM
+MAKEDEPENDSTARGETFLAG ?= -MT
 MAKEDEPENDS ?= $(CXX) $(CXXFLAGS) $(MAKEDEPENDSFLAG)
 DEPSDIR ?= .deps
 
-.PHONY: all clean
+.PHONY: all clean test
 
-all: $(BINARY)
+all: $(BINARY) $(LIBRARY) $(TESTBINARY)
 
-$(BINARY): $(OBJECTS)
+$(BINARY): $(OBJECTS) $(LIBRARY)
+	$(CXX) $(LDFLAGS) $^ $(LIBS) -o $@
+
+$(LIBRARY): $(LIBRARYOBJECTS)
+	$(AR) -cr $@ $^
+
+$(TESTBINARY): $(TESTOBJECTS) $(LIBRARY)
 	$(CXX) $(LDFLAGS) $^ $(LIBS) -o $@
 
 -include $(wildcard $(DEPSDIR)/*.d)
@@ -28,11 +41,19 @@ $(BINARY): $(OBJECTS)
 $(DEPSDIR):
 	mkdir $@
 
-%.o: %.cpp $(DEPSDIR)
+%.o: %.cpp | $(DEPSDIR)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 ifneq ($(MAKEDEPENDS),)
-	$(MAKEDEPENDS) $< > $(DEPSDIR)/$(@:.o=.d)
+ifneq ($(MAKEDEPENDSTARGETFLAG),)
+	$(MAKEDEPENDS) $(MAKEDEPENDSTARGETFLAG) $@ $< > $(DEPSDIR)/$(subst /,_,$(@:.o=.d))
+else
+	$(MAKEDEPENDS) $@ > $(DEPSDIR)/$(subst /,_,$(@:.o=.d))
+endif
 endif
 
 clean:
-	rm -rf $(DEPSDIR) $(OBJECTS) $(BINARY)
+	rm -rf $(DEPSDIR) $(OBJECTS) $(BINARY) $(LIBRARYOBJECTS) $(LIBRARY) \
+	$(TESTBINARY) $(TESTOBJECTS)
+
+test: $(TESTBINARY)
+	$(TESTBINARY)

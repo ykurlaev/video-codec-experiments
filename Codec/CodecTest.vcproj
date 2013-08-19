@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="Codec"
-	ProjectGUID="{1DE6410D-4002-462D-9492-786155D43663}"
-	RootNamespace="Codec"
+	Name="CodecTest"
+	ProjectGUID="{2B622C3E-5B06-4EE0-B724-8F60A046CFB8}"
+	RootNamespace="CodecTest"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -22,7 +22,7 @@
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="1"
-			BuildLogFile="$(IntDir)\Codec\BuildLog.htm"
+			BuildLogFile="$(IntDir)\CodecTest\BuildLog.htm"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -42,20 +42,19 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=""
-				PreprocessorDefinitions="ZLIB_WINAPI;_DEBUG;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				StringPooling="true"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				SmallerTypeCheck="true"
 				RuntimeLibrary="3"
+				EnableEnhancedInstructionSet="2"
 				UsePrecompiledHeader="0"
-				ObjectFile="$(IntDir)\Codec\"
-				ProgramDataBaseFileName="$(IntDir)\Codec\vc90.pdb"
-				XMLDocumentationFileName="$(IntDir)\Codec\"
+				ObjectFile="$(IntDir)\CodecTest\"
+				ProgramDataBaseFileName="$(IntDir)\CodecTest\vc90.pdb"
+				XMLDocumentationFileName="$(IntDir)\CodecTest\"
 				WarningLevel="4"
 				WarnAsError="true"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -71,9 +70,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="&quot;$(ProjectDir)\3rdparty\zlibwapi.lib&quot;"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories=""
-				ManifestFile="$(IntDir)\Codec\$(TargetFileName).intermediate.manifest"
-				IgnoreAllDefaultLibraries="false"
+				ManifestFile="$(IntDir)\CodecTest\$(TargetFileName).intermediate.manifest"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -83,9 +80,9 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				OutputManifestFile="$(IntDir)\Codec\$(TargetFileName).embed.manifest"
-				ManifestResourceFile="$(IntDir)\Codec\$(TargetFileName).embed.manifest.res"
-				DependencyInformationFile="$(IntDir)\Codec\mt.dep"
+				OutputManifestFile="$(IntDir)\CodecTest\$(TargetFileName).embed.manifest"
+				ManifestResourceFile="$(IntDir)\CodecTest\$(TargetFileName).embed.manifest.res"
+				DependencyInformationFile="$(IntDir)\CodecTest\mt.dep"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -110,7 +107,7 @@
 			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
-			BuildLogFile="$(IntDir)\Codec\BuildLog.htm"
+			BuildLogFile="$(IntDir)\CodecTest\BuildLog.htm"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -130,22 +127,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				OmitFramePointers="false"
-				AdditionalIncludeDirectories=""
-				PreprocessorDefinitions="ZLIB_WINAPI;NDEBUG;MEASURE_TIME;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				StringPooling="true"
+				SmallerTypeCheck="false"
 				RuntimeLibrary="2"
-				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"
-				FloatingPointModel="2"
 				UsePrecompiledHeader="0"
-				ObjectFile="$(IntDir)\Codec\"
-				ProgramDataBaseFileName="$(IntDir)\Codec\vc90.pdb"
-				XMLDocumentationFileName="$(IntDir)\Codec\"
+				ObjectFile="$(IntDir)\CodecTest\"
+				ProgramDataBaseFileName="$(IntDir)\CodecTest\vc90.pdb"
+				XMLDocumentationFileName="$(IntDir)\CodecTest\"
 				WarningLevel="4"
 				WarnAsError="true"
 				DebugInformationFormat="3"
@@ -163,7 +155,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="&quot;$(ProjectDir)\3rdparty\zlibwapi.lib&quot;"
 				LinkIncremental="1"
-				ManifestFile="$(IntDir)\Codec\$(TargetFileName).intermediate.manifest"
+				ManifestFile="$(IntDir)\CodecTest\$(TargetFileName).intermediate.manifest"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -175,9 +167,9 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				OutputManifestFile="$(IntDir)\Codec\$(TargetFileName).embed.manifest"
-				ManifestResourceFile="$(IntDir)\Codec\$(TargetFileName).embed.manifest.res"
-				DependencyInformationFile="$(IntDir)\Codec\mt.dep"
+				OutputManifestFile="$(IntDir)\CodecTest\$(TargetFileName).embed.manifest"
+				ManifestResourceFile="$(IntDir)\CodecTest\$(TargetFileName).embed.manifest.res"
+				DependencyInformationFile="$(IntDir)\CodecTest\mt.dep"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -209,7 +201,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\src\main.cpp"
+				RelativePath=".\test\main.cpp"
 				>
 			</File>
 		</Filter>

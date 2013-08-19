@@ -1,5 +1,6 @@
 *.yuv
 *.compressed
 *.o
+*.a
 *.exe
 .deps

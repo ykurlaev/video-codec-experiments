@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="Codec"
-	ProjectGUID="{1DE6410D-4002-462D-9492-786155D43663}"
-	RootNamespace="Codec"
+	Name="CodecLibrary"
+	ProjectGUID="{DA364BC9-8196-4D1D-A6DF-F8756CAFB8DF}"
+	RootNamespace="CodecLibrary"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -20,9 +20,9 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
+			ConfigurationType="4"
 			CharacterSet="1"
-			BuildLogFile="$(IntDir)\Codec\BuildLog.htm"
+			BuildLogFile="$(IntDir)\CodecLibrary\BuildLog.htm"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -42,17 +42,18 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=""
-				PreprocessorDefinitions="ZLIB_WINAPI;_DEBUG;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\3rdparty&quot;"
+				PreprocessorDefinitions="ZLIB_WINAPI;_DEBUG;MEASURE_TIME;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_LIB;WIN32"
 				StringPooling="true"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				SmallerTypeCheck="true"
 				RuntimeLibrary="3"
+				DisableLanguageExtensions="false"
 				UsePrecompiledHeader="0"
-				ObjectFile="$(IntDir)\Codec\"
-				ProgramDataBaseFileName="$(IntDir)\Codec\vc90.pdb"
-				XMLDocumentationFileName="$(IntDir)\Codec\"
+				ObjectFile="$(IntDir)\CodecLibrary\"
+				ProgramDataBaseFileName="$(IntDir)\CodecLibrary\vc90.pdb"
+				XMLDocumentationFileName="$(IntDir)\CodecLibrary\"
 				WarningLevel="4"
 				WarnAsError="true"
 				Detect64BitPortabilityProblems="false"
@@ -68,24 +69,11 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="&quot;$(ProjectDir)\3rdparty\zlibwapi.lib&quot;"
-				LinkIncremental="2"
-				AdditionalLibraryDirectories=""
-				ManifestFile="$(IntDir)\Codec\$(TargetFileName).intermediate.manifest"
-				IgnoreAllDefaultLibraries="false"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-				OutputManifestFile="$(IntDir)\Codec\$(TargetFileName).embed.manifest"
-				ManifestResourceFile="$(IntDir)\Codec\$(TargetFileName).embed.manifest.res"
-				DependencyInformationFile="$(IntDir)\Codec\mt.dep"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -97,9 +85,6 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -107,10 +92,10 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
+			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
-			BuildLogFile="$(IntDir)\Codec\BuildLog.htm"
+			BuildLogFile="$(IntDir)\CodecLibrary\BuildLog.htm"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -133,21 +118,22 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				OmitFramePointers="false"
-				AdditionalIncludeDirectories=""
-				PreprocessorDefinitions="ZLIB_WINAPI;NDEBUG;MEASURE_TIME;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\3rdparty&quot;"
+				PreprocessorDefinitions="ZLIB_WINAPI;NDEBUG;MEASURE_TIME;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_LIB;WIN32"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"
 				FloatingPointModel="2"
+				DisableLanguageExtensions="false"
 				UsePrecompiledHeader="0"
-				ObjectFile="$(IntDir)\Codec\"
-				ProgramDataBaseFileName="$(IntDir)\Codec\vc90.pdb"
-				XMLDocumentationFileName="$(IntDir)\Codec\"
+				ObjectFile="$(IntDir)\CodecLibrary\"
+				ProgramDataBaseFileName="$(IntDir)\CodecLibrary\vc90.pdb"
+				XMLDocumentationFileName="$(IntDir)\CodecLibrary\"
 				WarningLevel="4"
 				WarnAsError="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -160,24 +146,11 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="&quot;$(ProjectDir)\3rdparty\zlibwapi.lib&quot;"
-				LinkIncremental="1"
-				ManifestFile="$(IntDir)\Codec\$(TargetFileName).intermediate.manifest"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-				OutputManifestFile="$(IntDir)\Codec\$(TargetFileName).embed.manifest"
-				ManifestResourceFile="$(IntDir)\Codec\$(TargetFileName).embed.manifest.res"
-				DependencyInformationFile="$(IntDir)\Codec\mt.dep"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -189,18 +162,11 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 	</Configurations>
 	<References>
-		<ProjectReference
-			ReferencedProjectIdentifier="{DA364BC9-8196-4D1D-A6DF-F8756CAFB8DF}"
-			RelativePathToProject=".\Codec\CodecLibrary.vcproj"
-		/>
 	</References>
 	<Files>
 		<Filter
@@ -209,7 +175,55 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\src\main.cpp"
+				RelativePath=".\src\lib\bytearrayserializer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\dct.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\decoder.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\delayediterator.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\encoder.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\frame.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\normalize.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\precompressor.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\predictor.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\quantization.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\zigzagscan.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\zlibcompress.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\zlibdecompress.cpp"
 				>
 			</File>
 		</Filter>
@@ -218,6 +232,58 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\src\lib\bytearrayserializer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\dct.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\decoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\encoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\frame.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\normalize.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\precompressor.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\predictor.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\quantization.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\util.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\zigzagscan.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\zlibcompress.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\zlibdecompress.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
