@@ -47,7 +47,7 @@ int decode(int argc, char *argv[])
             return 2;
         }
         bool silent = false;
-        if(argc > 3 && !strncmp(argv[3], "-q", 3))
+        if(argc > 2 && !strncmp(argv[2], "-q", 3))
         {
             silent = true;
         }

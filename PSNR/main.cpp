@@ -71,8 +71,8 @@ int main(int argc, char *argv[])
     avg_sad /= c;
     avg_mse /= c;
     avg_psnr /= c;
-    printf("peak %lld,%.2f,%.2f\n", max_sad, max_mse, min_psnr);
-    printf("avrg %.2f,%.2f,%.2f\n", avg_sad, avg_mse, avg_psnr);
+    printf("worst %lld,%.2f,%.2f\n", max_sad, max_mse, min_psnr);
+    printf("average %.2f,%.2f,%.2f\n", avg_sad, avg_mse, avg_psnr);
     fclose(first_file);
     fclose(second_file);
     delete[] first;

@@ -78,9 +78,9 @@ inline void DCT::applyForward(Iterator begin, Iterator end)
         typename std::iterator_traits<Iterator>::pointer ps[8];
         for(int i = 0; i < 8; i++)
         {
+            assert(begin != end);
             ps[i] = &*begin;
             ++begin;
-            assert(begin != end);
         }
         CODEC_DCT_FORWARD(*ps[0], *ps[1], *ps[2], *ps[3], *ps[4], *ps[5], *ps[6], *ps[7]);
     }
@@ -94,11 +94,11 @@ inline void DCT::applyReverse(Iterator begin, Iterator end)
         typename std::iterator_traits<Iterator>::pointer ps[8];
         for(int i = 0; i < 8; i++)
         {
+            assert(begin != end);
             ps[i] = &*begin;
             ++begin;
-            assert(begin != end);
         }
-        CODEC_DCT_FORWARD(*ps[0], *ps[1], *ps[2], *ps[3], *ps[4], *ps[5], *ps[6], *ps[7]);
+        CODEC_DCT_REVERSE(*ps[0], *ps[1], *ps[2], *ps[3], *ps[4], *ps[5], *ps[6], *ps[7]);
         for(int i = 0; i < 8; i++)
         {
             *ps[i] /= 4;

@@ -1,7 +1,7 @@
 #ifndef CODEC_PRECOMPRESSOR_H
 #define CODEC_PRECOMPRESSOR_H
 
-#include "../util.h"
+#include "util.h"
 
 namespace Codec
 {

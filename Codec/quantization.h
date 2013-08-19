@@ -1,7 +1,7 @@
 #ifndef CODEC_QUANTIZATION_H
 #define CODEC_QUANTIZATION_H
 
-#include "../util.h"
+#include "util.h"
 
 namespace Codec
 {

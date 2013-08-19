@@ -27,6 +27,10 @@ bool ByteArraySerializer::deserializeUint32(FILE *file, uint32_t &uint32)
 
 void ByteArraySerializer::serializeUint32(uint32_t uint32, FILE *file)
 {
+    /*uint8_t bytes[4] = {static_cast<uint8_t>(uint32 & 0xFF),
+                        static_cast<uint8_t>((uint32 >> 8) & 0xFF),
+                        static_cast<uint8_t>((uint32 >> 16) & 0xFF),
+                        static_cast<uint8_t>((uint32 >> 24) & 0xFF)};*/
     uint8_t bytes[4] = {static_cast<uint8_t>(uint32), static_cast<uint8_t>(uint32 >> 8),
                         static_cast<uint8_t>(uint32 >> 16), static_cast<uint8_t>(uint32 >> 24)};
     size_t n = fwrite(bytes, 1, 4, file);

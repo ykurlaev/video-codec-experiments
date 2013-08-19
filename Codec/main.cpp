@@ -10,7 +10,7 @@ using std::cerr;
 
 static int usage(const char *name)
 {
-    cerr << "Usage: " << name << " -e <file.y> <width> <height> <file.compressed>\n";
+    cerr << "Usage: " << name << " -e <file.y> <width> <height> <file.compressed> [<quality>] [<flat>] [-q]\n";
     cerr << "       " << name << " -d <file.compressed> <file.y>\n";
     return 1;
 }
