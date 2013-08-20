@@ -14,10 +14,10 @@ class Frame
     private:
         template <typename T>
         class BaseIterator;
-        class Iterator;
-        class HorizontalIterator;
-        class VerticalIterator;
-        class ScanningIterator;
+        class RegionIterator;
+        class HorizontalBlockIterator;
+        class VerticalBlockIterator;
+        class ScanningBlockIterator;
     public:
         static const uint32_t BLOCK_SIZE = N;
         typedef uint32_t coord_t;
@@ -30,14 +30,16 @@ class Frame
         coord_t getAlignedWidth() const;
         coord_t getAlignedHeight() const;
         void clear();
-        Iterator begin();
-        Iterator end();
-        HorizontalIterator horizontalBegin();
-        HorizontalIterator horizontalEnd();
-        VerticalIterator verticalBegin();
-        VerticalIterator verticalEnd();
-        ScanningIterator scanningBegin(const coord_t *scan);
-        ScanningIterator scanningEnd();
+        RegionIterator begin();
+        RegionIterator end();
+        RegionIterator regionBegin(coord_t xstart, coord_t ystart, coord_t width, coord_t height);
+        RegionIterator regionEnd(coord_t xstart, coord_t ystart, coord_t width, coord_t height);
+        HorizontalBlockIterator horizontalBegin(coord_t block = 0);
+        HorizontalBlockIterator horizontalEnd();
+        VerticalBlockIterator verticalBegin(coord_t block = 0);
+        VerticalBlockIterator verticalEnd();
+        ScanningBlockIterator scanningBegin(const coord_t *scan, coord_t block = 0);
+        ScanningBlockIterator scanningEnd();
     private:
         coord_t m_width;
         coord_t m_height;
@@ -69,36 +71,38 @@ class Frame<N>::BaseIterator
 };
 
 template <uint32_t N>
-class Frame<N>::Iterator : public BaseIterator<Iterator>
+class Frame<N>::RegionIterator : public BaseIterator<RegionIterator>
 {
     public:
-        Iterator();
-        Iterator(Frame &frame);
+        RegionIterator();
+        RegionIterator(data_t *ptr, data_t **pptr, coord_t x, coord_t y, coord_t xstart,
+                       coord_t xend, coord_t yend, coord_t skip);
         void increment();
     private:
         data_t **m_pptr;
         coord_t m_x;
         coord_t m_y;
-        coord_t m_width;
-        coord_t m_height;
+        coord_t m_xstart;
+        coord_t m_xend;
+        coord_t m_yend;
         coord_t m_skip;
 };
 
 template <uint32_t N>
-class Frame<N>::HorizontalIterator : public BaseIterator<HorizontalIterator>
+class Frame<N>::HorizontalBlockIterator : public BaseIterator<HorizontalBlockIterator>
 {
     public:
-        HorizontalIterator();
-        HorizontalIterator(data_t *ptr);
+        HorizontalBlockIterator();
+        HorizontalBlockIterator(data_t *ptr);
         void increment();
 };
 
 template <uint32_t N>
-class Frame<N>::VerticalIterator : public BaseIterator<VerticalIterator>
+class Frame<N>::VerticalBlockIterator : public BaseIterator<VerticalBlockIterator>
 {
     public:
-        VerticalIterator();
-        VerticalIterator(data_t *ptr, coord_t count);
+        VerticalBlockIterator();
+        VerticalBlockIterator(data_t *ptr, coord_t count);
         void increment();
     private:
         data_t *m_origin;
@@ -109,11 +113,11 @@ class Frame<N>::VerticalIterator : public BaseIterator<VerticalIterator>
 };
 
 template <uint32_t N>
-class Frame<N>::ScanningIterator : public BaseIterator<ScanningIterator>
+class Frame<N>::ScanningBlockIterator : public BaseIterator<ScanningBlockIterator>
 {
     public:
-        ScanningIterator();
-        ScanningIterator(data_t *ptr, coord_t count, const coord_t *scan);
+        ScanningBlockIterator();
+        ScanningBlockIterator(data_t *ptr, coord_t count, const coord_t *scan);
         void increment();
     private:
         data_t *m_origin;

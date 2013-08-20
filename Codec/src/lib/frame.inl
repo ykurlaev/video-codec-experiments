@@ -77,51 +77,76 @@ inline void Frame<N>::clear()
 }
 
 template <uint32_t N>
-inline typename Frame<N>::Iterator Frame<N>::begin()
+inline typename Frame<N>::RegionIterator Frame<N>::begin()
 {
-    return Iterator(*this);
+    return RegionIterator(&m_data[0], &m_ptrs[0], 0, 0, 0,
+                          m_width, m_height, m_alignedWidth - m_width);
 }
 
 template <uint32_t N>
-inline typename Frame<N>::Iterator Frame<N>::end()
+inline typename Frame<N>::RegionIterator Frame<N>::end()
 {
-    return Iterator();
+    return RegionIterator();
 }
 
 template <uint32_t N>
-inline typename Frame<N>::HorizontalIterator Frame<N>::horizontalBegin()
+inline typename Frame<N>::RegionIterator Frame<N>::regionBegin(coord_t xstart, coord_t ystart,
+                                                               coord_t width, coord_t height)
 {
-    return HorizontalIterator(&m_data[0]);
+    return RegionIterator(m_ptrs[ystart * m_alignedWidth + xstart],
+                          &m_ptrs[ystart * m_alignedWidth + xstart], xstart, ystart,
+                          xstart, xstart + width, ystart + height, m_alignedWidth - width);
 }
 
 template <uint32_t N>
-inline typename Frame<N>::HorizontalIterator Frame<N>::horizontalEnd()
+inline typename Frame<N>::RegionIterator Frame<N>::regionEnd(coord_t xstart, coord_t ystart,
+                                                             coord_t width, coord_t height)
 {
-    return HorizontalIterator(&m_data[0] + m_data.size());
+    return RegionIterator();
 }
 
 template <uint32_t N>
-inline typename Frame<N>::VerticalIterator Frame<N>::verticalBegin()
+inline typename Frame<N>::HorizontalBlockIterator Frame<N>::horizontalBegin(coord_t block)
 {
-    return VerticalIterator(&m_data[0], m_data.size() / (BLOCK_SIZE * BLOCK_SIZE));
+    return HorizontalBlockIterator(&m_data[0] + block * N * N);
 }
 
 template <uint32_t N>
-inline typename Frame<N>::VerticalIterator Frame<N>::verticalEnd()
+inline typename Frame<N>::HorizontalBlockIterator Frame<N>::horizontalEnd()
 {
-    return VerticalIterator();
+    return HorizontalBlockIterator(&m_data[0] + m_data.size());
 }
 
 template <uint32_t N>
-inline typename Frame<N>::ScanningIterator Frame<N>::scanningBegin(const coord_t *scan)
+inline typename Frame<N>::VerticalBlockIterator Frame<N>::verticalBegin(coord_t block)
 {
-    return ScanningIterator(&m_data[0], m_data.size() / (BLOCK_SIZE * BLOCK_SIZE), scan);
+    if(block == m_data.size() / (N * N))
+    {
+        return VerticalBlockIterator();
+    }
+    return VerticalBlockIterator(&m_data[0] + block * N * N, m_data.size() / (N * N) - block);
 }
 
 template <uint32_t N>
-inline typename Frame<N>::ScanningIterator Frame<N>::scanningEnd()
+inline typename Frame<N>::VerticalBlockIterator Frame<N>::verticalEnd()
 {
-    return ScanningIterator();
+    return VerticalBlockIterator();
+}
+
+template <uint32_t N>
+inline typename Frame<N>::ScanningBlockIterator Frame<N>::scanningBegin(const coord_t *scan, coord_t block)
+{
+    if(block == m_data.size() / (N * N))
+    {
+        return ScanningBlockIterator();
+    }
+    return ScanningBlockIterator(&m_data[0] + block * N * N, m_data.size() / (N * N) - block, scan);
+}
+
+template <uint32_t N>
+inline typename Frame<N>::ScanningBlockIterator Frame<N>::scanningEnd()
+{
+    return ScanningBlockIterator();
 }
 
 template <uint32_t N>
@@ -181,26 +206,27 @@ inline Frame<N>::BaseIterator<T>::BaseIterator(data_t *ptr)
 {}
 
 template <uint32_t N>
-inline Frame<N>::Iterator::Iterator()
-    : BaseIterator<Iterator>(NULL), m_pptr(NULL), m_x(0), m_y(0),
-      m_width(0), m_height(0), m_skip(0)
+inline Frame<N>::RegionIterator::RegionIterator()
+    : BaseIterator<RegionIterator>(NULL), m_pptr(NULL), m_x(0), m_y(0),
+      m_xstart(0), m_xend(0), m_yend(0), m_skip(0)
 {}
 
 template <uint32_t N>
-inline Frame<N>::Iterator::Iterator(Frame &frame)
-    : BaseIterator<Iterator>(&frame.m_data[0]), m_pptr(&frame.m_ptrs[0]), m_x(0), m_y(0),
-      m_width(frame.m_width), m_height(frame.m_height), m_skip(frame.m_alignedWidth - frame.m_width)
+inline Frame<N>::RegionIterator::RegionIterator(data_t *ptr, data_t **pptr, coord_t x, coord_t y,
+                                                coord_t xstart, coord_t xend, coord_t yend, coord_t skip)
+    : BaseIterator<RegionIterator>(ptr), m_pptr(pptr), m_x(x), m_y(y),
+      m_xstart(xstart), m_xend(xend), m_yend(yend), m_skip(skip)
 {}
 
 template <uint32_t N>
-inline void Frame<N>::Iterator::increment()
+inline void Frame<N>::RegionIterator::increment()
 {
     m_x++;
-    if(m_x == m_width)
+    if(m_x == m_xend)
     {
-        m_x = 0;
+        m_x = m_xstart;
         m_y++;
-        if(m_y == m_height)
+        if(m_y == m_yend)
         {
             this->m_ptr = NULL;
             return;
@@ -215,34 +241,34 @@ inline void Frame<N>::Iterator::increment()
 }
 
 template <uint32_t N>
-inline Frame<N>::HorizontalIterator::HorizontalIterator()
-    : BaseIterator<HorizontalIterator>(NULL)
+inline Frame<N>::HorizontalBlockIterator::HorizontalBlockIterator()
+    : BaseIterator<HorizontalBlockIterator>(NULL)
 {}
 
 template <uint32_t N>
-inline Frame<N>::HorizontalIterator::HorizontalIterator(data_t *ptr)
-    : BaseIterator<HorizontalIterator>(ptr)
+inline Frame<N>::HorizontalBlockIterator::HorizontalBlockIterator(data_t *ptr)
+    : BaseIterator<HorizontalBlockIterator>(ptr)
 {}
 
 template <uint32_t N>
-inline void Frame<N>::HorizontalIterator::increment()
+inline void Frame<N>::HorizontalBlockIterator::increment()
 {
     this->m_ptr++;
 }
 
 template <uint32_t N>
-inline Frame<N>::VerticalIterator::VerticalIterator()
-    : BaseIterator<VerticalIterator>(NULL), m_origin(NULL), m_x(0), m_y(0), m_block(0), m_count(0)
+inline Frame<N>::VerticalBlockIterator::VerticalBlockIterator()
+    : BaseIterator<VerticalBlockIterator>(NULL), m_origin(NULL), m_x(0), m_y(0), m_block(0), m_count(0)
 {}
 
 
 template <uint32_t N>
-inline Frame<N>::VerticalIterator::VerticalIterator(data_t *ptr, coord_t count)
-    : BaseIterator<VerticalIterator>(ptr), m_origin(ptr), m_x(0), m_y(0), m_block(0), m_count(count)
+inline Frame<N>::VerticalBlockIterator::VerticalBlockIterator(data_t *ptr, coord_t count)
+    : BaseIterator<VerticalBlockIterator>(ptr), m_origin(ptr), m_x(0), m_y(0), m_block(0), m_count(count)
 {}
 
 template <uint32_t N>
-inline void Frame<N>::VerticalIterator::increment()
+inline void Frame<N>::VerticalBlockIterator::increment()
 {
     m_y++;
     if(m_y == N)
@@ -276,19 +302,19 @@ inline void Frame<N>::VerticalIterator::increment()
 }
 
 template <uint32_t N>
-inline Frame<N>::ScanningIterator::ScanningIterator()
-    : BaseIterator<ScanningIterator>(NULL), m_origin(NULL), m_block(0), m_count(0),
+inline Frame<N>::ScanningBlockIterator::ScanningBlockIterator()
+    : BaseIterator<ScanningBlockIterator>(NULL), m_origin(NULL), m_block(0), m_count(0),
       m_scan(NULL), m_scanPtr(NULL)
 {}
 
 template <uint32_t N>
-inline Frame<N>::ScanningIterator::ScanningIterator(data_t *ptr, coord_t count, const coord_t *scan)
-    : BaseIterator<ScanningIterator>(ptr), m_origin(ptr), m_block(0), m_count(count),
+inline Frame<N>::ScanningBlockIterator::ScanningBlockIterator(data_t *ptr, coord_t count, const coord_t *scan)
+    : BaseIterator<ScanningBlockIterator>(ptr), m_origin(ptr), m_block(0), m_count(count),
       m_scan(scan), m_scanPtr(scan)
 {}
 
 template <uint32_t N>
-inline void Frame<N>::ScanningIterator::increment()
+inline void Frame<N>::ScanningBlockIterator::increment()
 {
     m_scanPtr++;
     if(m_scanPtr - m_scan == N * N)
