@@ -9,14 +9,33 @@ inline Frame<N>::Frame(coord_t width, coord_t height, coord_t alignment)
     : m_width(width), m_height(height),
       m_alignedWidth(((width + alignment - 1) / alignment) * alignment),
       m_alignedHeight(((height + alignment - 1) / alignment) * alignment),
-      m_data(m_alignedWidth * m_alignedHeight)
-{}
+      m_data(m_alignedWidth * m_alignedHeight), m_ptrs(m_alignedWidth * m_alignedHeight)
+{
+    coord_t xCount = m_alignedWidth / N;
+    coord_t xBlock = 0, yBlock = 0, i = 0;
+    for(int *ptr = &m_data[0]; ptr != &m_data[0] + m_data.size(); ptr++)
+    {
+        coord_t y = i / N, x = i % N;
+        m_ptrs[(yBlock * N + y) * m_alignedWidth + xBlock * N + x] = ptr;
+        i++;
+        if(i == N * N)
+        {
+            i = 0;
+            xBlock++;
+            if(xBlock == xCount)
+            {
+                xBlock = 0;
+                yBlock++;
+            }
+        }
+    }
+}
 
 template <uint32_t N>
 inline Frame<N>::Frame(const Frame &other)
     : m_width(other.m_width), m_height(other.m_height),
       m_alignedWidth(other.m_alignedWidth), m_alignedHeight(other.m_alignedHeight),
-      m_data(other.m_data)
+      m_data(other.m_data), m_ptrs(other.m_ptrs)
 {}
 
 template <uint32_t N>
@@ -114,6 +133,7 @@ inline void swap(Frame<N> &first, Frame<N> &second)
     swap(first.m_alignedWidth, second.m_alignedWidth);
     swap(first.m_alignedHeight, second.m_alignedHeight);
     swap(first.m_data, second.m_data);
+    swap(first.m_ptrs, second.m_ptrs);
 }
 
 template <uint32_t N>
@@ -162,20 +182,19 @@ inline Frame<N>::BaseIterator<T>::BaseIterator(data_t *ptr)
 
 template <uint32_t N>
 inline Frame<N>::Iterator::Iterator()
-    : BaseIterator<Iterator>(NULL), m_origin(NULL), m_x(0), m_y(0), 
+    : BaseIterator<Iterator>(NULL), m_pptr(NULL), m_x(0), m_y(0),
       m_width(0), m_height(0), m_skip(0)
 {}
 
 template <uint32_t N>
 inline Frame<N>::Iterator::Iterator(Frame &frame)
-    : BaseIterator<Iterator>(&frame.m_data[0]), m_origin(&frame.m_data[0]), m_x(0), m_y(0), 
+    : BaseIterator<Iterator>(&frame.m_data[0]), m_pptr(&frame.m_ptrs[0]), m_x(0), m_y(0),
       m_width(frame.m_width), m_height(frame.m_height), m_skip(frame.m_alignedWidth - frame.m_width)
 {}
 
 template <uint32_t N>
 inline void Frame<N>::Iterator::increment()
 {
-    this->m_ptr++;
     m_x++;
     if(m_x == m_width)
     {
@@ -184,22 +203,15 @@ inline void Frame<N>::Iterator::increment()
         if(m_y == m_height)
         {
             this->m_ptr = NULL;
+            return;
         }
-        else if(m_y % N == 0)
-        {
-            this->m_ptr += m_skip;
-            m_origin = this->m_ptr;
-        }
-        else
-        {
-            m_origin += N;
-            this->m_ptr = m_origin;
-        }
+        m_pptr += m_skip;
     }
-    else if(m_x % N == 0)
+    else
     {
-        this->m_ptr += N * (N - 1);
+        m_pptr++;
     }
+    this->m_ptr = *m_pptr;
 }
 
 template <uint32_t N>

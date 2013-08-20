@@ -44,6 +44,7 @@ class Frame
         coord_t m_alignedWidth;
         coord_t m_alignedHeight;
         std::vector<data_t> m_data;
+        std::vector<data_t *> m_ptrs;
         template <uint32_t M>
         friend void swap(Frame<M> &first, Frame<M> &second);
 };
@@ -75,7 +76,7 @@ class Frame<N>::Iterator : public BaseIterator<Iterator>
         Iterator(Frame &frame);
         void increment();
     private:
-        data_t *m_origin;
+        data_t **m_pptr;
         coord_t m_x;
         coord_t m_y;
         coord_t m_width;
