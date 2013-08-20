@@ -117,42 +117,63 @@ inline void swap(Frame<N> &first, Frame<N> &second)
 }
 
 template <uint32_t N>
-inline bool Frame<N>::BaseIterator::operator==(const BaseIterator& other) const
+template <typename T>
+inline bool Frame<N>::BaseIterator<T>::operator==(const BaseIterator& other) const
 {
     return m_ptr == other.m_ptr;
 }
 
 template <uint32_t N>
-inline bool Frame<N>::BaseIterator::operator!=(const BaseIterator& other) const
+template <typename T>
+inline bool Frame<N>::BaseIterator<T>::operator!=(const BaseIterator& other) const
 {
     return !(*this == other);
 }
 
 template <uint32_t N>
-inline typename Frame<N>::BaseIterator::reference Frame<N>::BaseIterator::operator*()
+template <typename T>
+inline typename Frame<N>::template BaseIterator<T>::reference Frame<N>::BaseIterator<T>::operator*()
 {
     return *m_ptr;
 }
 
 template <uint32_t N>
-inline Frame<N>::BaseIterator::BaseIterator(data_t *ptr)
+template <typename T>
+inline T &Frame<N>::BaseIterator<T>::operator++()
+{
+    static_cast<T *>(this)->increment();
+    return *static_cast<T *>(this);
+}
+
+template <uint32_t N>
+template <typename T>
+inline T Frame<N>::BaseIterator<T>::operator++(int)
+{
+    T result(*static_cast<T *>(this));
+    static_cast<T *>(this)->increment();
+    return result;
+}
+
+template <uint32_t N>
+template <typename T>
+inline Frame<N>::BaseIterator<T>::BaseIterator(data_t *ptr)
     : m_ptr(ptr)
 {}
 
 template <uint32_t N>
 inline Frame<N>::Iterator::Iterator()
-    : BaseIterator(NULL), m_origin(NULL), m_x(0), m_y(0), 
+    : BaseIterator<Iterator>(NULL), m_origin(NULL), m_x(0), m_y(0), 
       m_width(0), m_height(0), m_skip(0)
 {}
 
 template <uint32_t N>
 inline Frame<N>::Iterator::Iterator(Frame &frame)
-    : BaseIterator(&frame.m_data[0]), m_origin(&frame.m_data[0]), m_x(0), m_y(0), 
+    : BaseIterator<Iterator>(&frame.m_data[0]), m_origin(&frame.m_data[0]), m_x(0), m_y(0), 
       m_width(frame.m_width), m_height(frame.m_height), m_skip(frame.m_alignedWidth - frame.m_width)
 {}
 
 template <uint32_t N>
-inline typename Frame<N>::Iterator &Frame<N>::Iterator::operator++()
+inline void Frame<N>::Iterator::increment()
 {
     this->m_ptr++;
     m_x++;
@@ -179,55 +200,37 @@ inline typename Frame<N>::Iterator &Frame<N>::Iterator::operator++()
     {
         this->m_ptr += N * (N - 1);
     }
-    return *this;
-}
-
-template <uint32_t N>
-inline typename Frame<N>::Iterator Frame<N>::Iterator::operator++(int)
-{
-    Iterator result(*this);
-    ++(*this);
-    return result;
 }
 
 template <uint32_t N>
 inline Frame<N>::HorizontalIterator::HorizontalIterator()
-    : BaseIterator(NULL)
+    : BaseIterator<HorizontalIterator>(NULL)
 {}
 
 template <uint32_t N>
 inline Frame<N>::HorizontalIterator::HorizontalIterator(data_t *ptr)
-    : BaseIterator(ptr)
+    : BaseIterator<HorizontalIterator>(ptr)
 {}
 
 template <uint32_t N>
-inline typename Frame<N>::HorizontalIterator &Frame<N>::HorizontalIterator::operator++()
+inline void Frame<N>::HorizontalIterator::increment()
 {
     this->m_ptr++;
-    return *this;
-}
-
-template <uint32_t N>
-inline typename Frame<N>::HorizontalIterator Frame<N>::HorizontalIterator::operator++(int)
-{
-    HorizontalIterator result(*this);
-    ++(*this);
-    return result;
 }
 
 template <uint32_t N>
 inline Frame<N>::VerticalIterator::VerticalIterator()
-    : BaseIterator(NULL), m_origin(NULL), m_x(0), m_y(0), m_block(0), m_count(0)
+    : BaseIterator<VerticalIterator>(NULL), m_origin(NULL), m_x(0), m_y(0), m_block(0), m_count(0)
 {}
 
 
 template <uint32_t N>
 inline Frame<N>::VerticalIterator::VerticalIterator(data_t *ptr, coord_t count)
-    : BaseIterator(ptr), m_origin(ptr), m_x(0), m_y(0), m_block(0), m_count(count)
+    : BaseIterator<VerticalIterator>(ptr), m_origin(ptr), m_x(0), m_y(0), m_block(0), m_count(count)
 {}
 
 template <uint32_t N>
-inline typename Frame<N>::VerticalIterator &Frame<N>::VerticalIterator::operator++()
+inline void Frame<N>::VerticalIterator::increment()
 {
     m_y++;
     if(m_y == N)
@@ -258,31 +261,22 @@ inline typename Frame<N>::VerticalIterator &Frame<N>::VerticalIterator::operator
     {
         this->m_ptr += N;
     }
-    return *this;
-}
-
-template <uint32_t N>
-inline typename Frame<N>::VerticalIterator Frame<N>::VerticalIterator::operator++(int)
-{
-    VerticalIterator result(*this);
-    ++(*this);
-    return result;
 }
 
 template <uint32_t N>
 inline Frame<N>::ScanningIterator::ScanningIterator()
-    : BaseIterator(NULL), m_origin(NULL), m_block(0), m_count(0),
+    : BaseIterator<ScanningIterator>(NULL), m_origin(NULL), m_block(0), m_count(0),
       m_scan(NULL), m_scanPtr(NULL)
 {}
 
 template <uint32_t N>
 inline Frame<N>::ScanningIterator::ScanningIterator(data_t *ptr, coord_t count, const coord_t *scan)
-    : BaseIterator(ptr), m_origin(ptr), m_block(0), m_count(count),
+    : BaseIterator<ScanningIterator>(ptr), m_origin(ptr), m_block(0), m_count(count),
       m_scan(scan), m_scanPtr(scan)
 {}
 
 template <uint32_t N>
-inline typename Frame<N>::ScanningIterator &Frame<N>::ScanningIterator::operator++()
+inline void Frame<N>::ScanningIterator::increment()
 {
     m_scanPtr++;
     if(m_scanPtr - m_scan == N * N)
@@ -303,15 +297,6 @@ inline typename Frame<N>::ScanningIterator &Frame<N>::ScanningIterator::operator
     {
         this->m_ptr = m_origin + *m_scanPtr;
     }
-    return *this;
-}
-
-template <uint32_t N>
-inline typename Frame<N>::ScanningIterator Frame<N>::ScanningIterator::operator++(int)
-{
-    ScanningIterator result(*this);
-    ++(*this);
-    return result;
 }
 
 }

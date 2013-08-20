@@ -12,6 +12,7 @@ template <uint32_t N = 0>
 class Frame
 {
     private:
+        template <typename T>
         class BaseIterator;
         class Iterator;
         class HorizontalIterator;
@@ -51,26 +52,28 @@ template <uint32_t N>
 void swap(Frame<N> &first, Frame<N> &second);
 
 template <uint32_t N>
+template <typename T>
 class Frame<N>::BaseIterator
     : public std::iterator<std::forward_iterator_tag, typename Frame<N>::data_t>
 {
    public:
         bool operator==(const BaseIterator& other) const;
         bool operator!=(const BaseIterator& other) const;
-        typename Frame<N>::BaseIterator::reference operator*();
+        typename Frame<N>::template BaseIterator<T>::reference operator*();
+        T &operator++();
+        T operator++(int);
     protected:
         data_t *m_ptr;
         BaseIterator(data_t *ptr);
 };
 
 template <uint32_t N>
-class Frame<N>::Iterator : public BaseIterator
+class Frame<N>::Iterator : public BaseIterator<Iterator>
 {
     public:
         Iterator();
         Iterator(Frame &frame);
-        Iterator &operator++();
-        Iterator operator++(int);
+        void increment();
     private:
         data_t *m_origin;
         coord_t m_x;
@@ -81,23 +84,21 @@ class Frame<N>::Iterator : public BaseIterator
 };
 
 template <uint32_t N>
-class Frame<N>::HorizontalIterator : public BaseIterator
+class Frame<N>::HorizontalIterator : public BaseIterator<HorizontalIterator>
 {
     public:
         HorizontalIterator();
         HorizontalIterator(data_t *ptr);
-        HorizontalIterator &operator++();
-        HorizontalIterator operator++(int);
+        void increment();
 };
 
 template <uint32_t N>
-class Frame<N>::VerticalIterator : public BaseIterator
+class Frame<N>::VerticalIterator : public BaseIterator<VerticalIterator>
 {
     public:
         VerticalIterator();
         VerticalIterator(data_t *ptr, coord_t count);
-        VerticalIterator &operator++();
-        VerticalIterator operator++(int);
+        void increment();
     private:
         data_t *m_origin;
         coord_t m_x;
@@ -107,13 +108,12 @@ class Frame<N>::VerticalIterator : public BaseIterator
 };
 
 template <uint32_t N>
-class Frame<N>::ScanningIterator : public BaseIterator
+class Frame<N>::ScanningIterator : public BaseIterator<ScanningIterator>
 {
     public:
         ScanningIterator();
         ScanningIterator(data_t *ptr, coord_t count, const coord_t *scan);
-        ScanningIterator &operator++();
-        ScanningIterator operator++(int);
+        void increment();
     private:
         data_t *m_origin;
         coord_t m_block;
