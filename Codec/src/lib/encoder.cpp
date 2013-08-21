@@ -80,15 +80,15 @@ int encode(int argc, char *argv[])
         byteArraySerializer.serializeUint32(height, out);
         byteArraySerializer.serializeUint32(quality, out);
         byteArraySerializer.serializeUint32(flat ? 1 : 0, out);
-        Frame<8> current(width, height, 16);
-        Frame<8> previous(width, height, 16);
+        Frame<8, 16> current(width, height);
+        Frame<8, 16> previous(width, height);
         vector<uint8_t> uncompressed(current.getWidth() * current.getHeight());
         vector<uint8_t> precompressed(current.getAlignedWidth() * current.getAlignedHeight() * Precompressor::MAX_BYTES);
         vector<uint8_t> compressed(precompressed.size());
         Predictor predictor;
         DCT dct;
         Quantization quantization(flat, quality);
-        const Frame<8>::coord_t *zigZagScan = ZigZagScan<8>::getScan();
+        const Frame<>::coord_t *zigZagScan = ZigZagScan<8>::getScan();
         Precompressor precompressor(&precompressed[0]);
         ZlibCompress zlibCompress;
         Normalize normalize;

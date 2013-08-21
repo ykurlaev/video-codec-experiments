@@ -8,7 +8,7 @@
 namespace Codec
 {
 
-template <uint32_t N = 0>
+template <uint32_t MIN_N = 0, uint32_t MAX_N = 0>
 class Frame
 {
     private:
@@ -19,10 +19,11 @@ class Frame
         class VerticalBlockIterator;
         class ScanningBlockIterator;
     public:
-        static const uint32_t BLOCK_SIZE = N;
+        static const uint32_t MIN_BLOCK_SIZE = MIN_N;
+        static const uint32_t MAX_BLOCK_SIZE = MAX_N;
         typedef uint32_t coord_t;
         typedef int data_t;
-        Frame(coord_t width, coord_t height, coord_t alignment);
+        Frame(coord_t width, coord_t height);
         Frame(const Frame &other);
         Frame &operator=(const Frame &other);
         coord_t getWidth() const;
@@ -47,22 +48,22 @@ class Frame
         coord_t m_alignedHeight;
         std::vector<data_t> m_data;
         std::vector<data_t *> m_ptrs;
-        template <uint32_t M>
-        friend void swap(Frame<M> &first, Frame<M> &second);
+        template <uint32_t MIN_M, uint32_t MAX_M>
+        friend void swap(Frame<MIN_M, MAX_M> &first, Frame<MIN_M, MAX_M> &second);
 };
 
-template <uint32_t N>
-void swap(Frame<N> &first, Frame<N> &second);
+template <uint32_t MIN_N, uint32_t MAX_N>
+void swap(Frame<MIN_N, MAX_N> &first, Frame<MIN_N, MAX_N> &second);
 
-template <uint32_t N>
+template <uint32_t MIN_N, uint32_t MAX_N>
 template <typename T>
-class Frame<N>::BaseIterator
-    : public std::iterator<std::forward_iterator_tag, typename Frame<N>::data_t>
+class Frame<MIN_N, MAX_N>::BaseIterator
+    : public std::iterator<std::forward_iterator_tag, typename Frame<MIN_N, MAX_N>::data_t>
 {
    public:
-        bool operator==(const BaseIterator& other) const;
-        bool operator!=(const BaseIterator& other) const;
-        typename Frame<N>::template BaseIterator<T>::reference operator*();
+        bool operator==(const T& other) const;
+        bool operator!=(const T& other) const;
+        typename Frame<MIN_N, MAX_N>::template BaseIterator<T>::reference operator*();
         T &operator++();
         T operator++(int);
     protected:
@@ -70,8 +71,8 @@ class Frame<N>::BaseIterator
         BaseIterator(data_t *ptr);
 };
 
-template <uint32_t N>
-class Frame<N>::RegionIterator : public BaseIterator<RegionIterator>
+template <uint32_t MIN_N, uint32_t MAX_N>
+class Frame<MIN_N, MAX_N>::RegionIterator : public BaseIterator<RegionIterator>
 {
     public:
         RegionIterator();
@@ -88,8 +89,8 @@ class Frame<N>::RegionIterator : public BaseIterator<RegionIterator>
         coord_t m_skip;
 };
 
-template <uint32_t N>
-class Frame<N>::HorizontalBlockIterator : public BaseIterator<HorizontalBlockIterator>
+template <uint32_t MIN_N, uint32_t MAX_N>
+class Frame<MIN_N, MAX_N>::HorizontalBlockIterator : public BaseIterator<HorizontalBlockIterator>
 {
     public:
         HorizontalBlockIterator();
@@ -97,8 +98,8 @@ class Frame<N>::HorizontalBlockIterator : public BaseIterator<HorizontalBlockIte
         void increment();
 };
 
-template <uint32_t N>
-class Frame<N>::VerticalBlockIterator : public BaseIterator<VerticalBlockIterator>
+template <uint32_t MIN_N, uint32_t MAX_N>
+class Frame<MIN_N, MAX_N>::VerticalBlockIterator : public BaseIterator<VerticalBlockIterator>
 {
     public:
         VerticalBlockIterator();
@@ -112,8 +113,8 @@ class Frame<N>::VerticalBlockIterator : public BaseIterator<VerticalBlockIterato
         coord_t m_count;
 };
 
-template <uint32_t N>
-class Frame<N>::ScanningBlockIterator : public BaseIterator<ScanningBlockIterator>
+template <uint32_t MIN_N, uint32_t MAX_N>
+class Frame<MIN_N, MAX_N>::ScanningBlockIterator : public BaseIterator<ScanningBlockIterator>
 {
     public:
         ScanningBlockIterator();

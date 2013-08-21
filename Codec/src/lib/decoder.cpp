@@ -64,13 +64,13 @@ int decode(int argc, char *argv[])
         Frame<8>::coord_t height = static_cast<Frame<8>::coord_t>(uheight);
         uint8_t quality = uquality & 0xFF;
         bool flat = uflat != 0;
-        Frame<8> current(width, height, 16);
-        Frame<8> previous(width, height, 16);
+        Frame<8, 16> current(width, height);
+        Frame<8, 16> previous(width, height);
         vector<uint8_t> uncompressed(current.getWidth() * current.getHeight());
         vector<uint8_t> precompressed(current.getAlignedWidth() * current.getAlignedHeight() * Precompressor::MAX_BYTES);
         vector<uint8_t> compressed(precompressed.size());
         ZlibDecompress zlibDecompress;
-        const Frame<8>::coord_t *zigZagScan = ZigZagScan<8>::getScan();
+        const Frame<>::coord_t *zigZagScan = ZigZagScan<8>::getScan();
         Precompressor precompressor(&precompressed[0]);
         Quantization quantization(flat, quality);
         DCT dct;
