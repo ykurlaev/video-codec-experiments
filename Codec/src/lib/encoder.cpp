@@ -22,6 +22,11 @@
 namespace Codec
 {
 
+using std::fopen;
+using std::strncmp;
+#ifdef MEASURE_TIME
+using std::clock;
+#endif
 using std::vector;
 using std::cerr;
 using std::istringstream;

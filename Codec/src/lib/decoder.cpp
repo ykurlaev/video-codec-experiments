@@ -21,6 +21,9 @@
 namespace Codec
 {
 
+using std::fopen;
+using std::strncmp;
+using std::clock;
 using std::cerr;
 using std::vector;
 using std::copy;

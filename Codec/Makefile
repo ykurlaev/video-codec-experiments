@@ -11,7 +11,7 @@ TESTBINARY ?= CodecTest.exe
 NDEBUG ?= -DNDEBUG
 MEASURETIME ?= -DMEASURE_TIME
 EXTRADEFINES ?=
-DEFINES := $(NDEBUG) $(MEASURE_TIME) $(EXTRA_DEFINES)
+DEFINES := $(NDEBUG) $(MEASURETIME) $(EXTRADEFINES)
 
 LTO ?= -flto # run "LTO='' make" if -flto cause error
 CXXFLAGS ?= -std=c++0x -Wall -Wextra -Werror -pedantic -O3 $(LTO) -g $(DEFINES)
@@ -47,7 +47,7 @@ ifneq ($(MAKEDEPENDS),)
 ifneq ($(MAKEDEPENDSTARGETFLAG),)
 	$(MAKEDEPENDS) $(MAKEDEPENDSTARGETFLAG) $@ $< > $(DEPSDIR)/$(subst /,_,$(@:.o=.d))
 else
-	$(MAKEDEPENDS) $@ > $(DEPSDIR)/$(subst /,_,$(@:.o=.d))
+	$(MAKEDEPENDS) $< > $(DEPSDIR)/$(subst /,_,$(@:.o=.d))
 endif
 endif
 

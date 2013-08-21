@@ -10,9 +10,9 @@ class DCT
 {
     public:
         template <typename Iterator>
-	    void applyForward(Iterator begin, Iterator end);
+        void applyForward(Iterator begin, Iterator end);
         template <typename Iterator>
-	    void applyReverse(Iterator begin, Iterator end);
+        void applyReverse(Iterator begin, Iterator end);
 };
 
 }

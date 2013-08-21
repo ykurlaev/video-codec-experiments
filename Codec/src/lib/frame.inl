@@ -76,7 +76,7 @@ inline typename Frame<MIN_N, MAX_N>::coord_t Frame<MIN_N, MAX_N>::getAlignedHeig
 template <uint32_t MIN_N, uint32_t MAX_N>
 inline void Frame<MIN_N, MAX_N>::clear()
 {
-    memset(&m_data[0], 0, m_data.size() * sizeof(data_t));
+    std::memset(&m_data[0], 0, m_data.size() * sizeof(data_t));
 }
 
 template <uint32_t MIN_N, uint32_t MAX_N>
