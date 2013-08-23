@@ -236,7 +236,7 @@ inline void Frame<MIN_N, MAX_N>::RegionIterator::increment()
             this->m_ptr = NULL;
             return;
         }
-        m_pptr += m_skip;
+        m_pptr += m_skip + 1;
     }
     else
     {
