@@ -24,8 +24,14 @@ inline size_t Precompressor::applyForward(Iterator begin, Iterator end)
         typename MakeUnsigned<typename Iterator::value_type>::t u = *begin;
         uint8_t lsb = u & 0xFF;
         uint8_t msb = (u >> 8) & 0xFF;
-        if(msb == 0 && lsb == 0 && zeros != 0x3F)
+        if(msb == 0 && lsb == 0)
         {
+            if(zeros == 0x3F)
+            {
+                m_byteArray[result] = 0xC0 | zeros;
+                result++;
+                zeros = 0;
+            }
             zeros++;
         }
         else
@@ -49,6 +55,11 @@ inline size_t Precompressor::applyForward(Iterator begin, Iterator end)
                 result += 2;
             }
         }
+    }
+    if(zeros != 0)
+    {
+        m_byteArray[result] = 0xC0 | zeros;
+        result++;
     }
     return result;
 }
