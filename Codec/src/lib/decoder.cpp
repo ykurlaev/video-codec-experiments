@@ -74,7 +74,7 @@ int decode(int argc, char *argv[])
         vector<uint8_t> compressed(precompressed.size());
         ZlibDecompress zlibDecompress;
         const Frame<>::coord_t *zigZagScan = ZigZagScan<8>::getScan();
-        Precompressor precompressor(&precompressed[0]);
+        Precompressor precompressor;
         Quantization quantization(flat, quality);
         DCT dct;
         Predictor predictor;
@@ -104,11 +104,8 @@ int decode(int argc, char *argv[])
             }
             zlibDecompress(&compressed[0], &precompressed[0], compressedSize, precompressed.size());
             swap(current, previous);
-            if(precompressor.applyReverse(current.scanningBegin(zigZagScan), current.scanningEnd())
-                != precompressed.size() / Precompressor::MAX_BYTES)
-            {
-                break;
-            }
+            precompressor.setByteArray(&precompressed[0]);
+            precompressor.applyReverse(current.scanningBegin(zigZagScan), current.scanningEnd());
             quantization.applyReverse(current.horizontalBegin(), current.horizontalEnd());
             dct.applyReverse(current.horizontalBegin(), current.horizontalEnd());
             dct.applyReverse(current.verticalBegin(), current.verticalEnd());

@@ -10,14 +10,16 @@ class Precompressor
 {
     public:
         static const size_t MAX_BYTES = 2;
-        Precompressor(uint8_t *byteArray = NULL);
+        Precompressor();
         void setByteArray(uint8_t *byteArray);
+        size_t getBytesProcessed() const;
         template <typename Iterator>
-        size_t applyForward(Iterator begin, Iterator end);
+        void applyForward(Iterator begin, Iterator end);
         template <typename Iterator>
-        size_t applyReverse(Iterator begin, Iterator end);
+        void applyReverse(Iterator begin, Iterator end);
     private:
         uint8_t *m_byteArray;
+        size_t m_bytesProcessed;
 };
 
 }

@@ -94,7 +94,7 @@ int encode(int argc, char *argv[])
         DCT dct;
         Quantization quantization(flat, quality);
         const Frame<>::coord_t *zigZagScan = ZigZagScan<8>::getScan();
-        Precompressor precompressor(&precompressed[0]);
+        Precompressor precompressor;
         ZlibCompress zlibCompress;
         Normalize normalize;
         if(!silent)
@@ -118,15 +118,15 @@ int encode(int argc, char *argv[])
                 break;
             }
             copy(uncompressed.begin(), uncompressed.end(), current.begin());
+            precompressor.setByteArray(&precompressed[0]);
             predictor.applyForward(current.horizontalBegin(), current.horizontalEnd(),
                                    previous.horizontalBegin());
             dct.applyForward(current.horizontalBegin(), current.horizontalEnd());
             dct.applyForward(current.verticalBegin(), current.verticalEnd());
             quantization.applyForward(current.horizontalBegin(), current.horizontalEnd());
-            size_t precompressedSize =
-                precompressor.applyForward(current.scanningBegin(zigZagScan), current.scanningEnd());
+            precompressor.applyForward(current.scanningBegin(zigZagScan), current.scanningEnd());
             uint32_t compressedSize = zlibCompress(&precompressed[0], &compressed[0],
-                                                   precompressedSize, compressed.size());
+                                                   precompressor.getBytesProcessed(), compressed.size());
             byteArraySerializer.serializeByteArray(&compressed[0], compressedSize, out);
             //###
             quantization.applyReverse(current.horizontalBegin(), current.horizontalEnd());
