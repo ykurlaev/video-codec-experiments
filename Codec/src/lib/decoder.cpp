@@ -103,7 +103,7 @@ int decode(int argc, char *argv[])
                 cerr << count << " ";
             }
             zlibDecompress(&compressed[0], &precompressed[0], compressedSize, precompressed.size());
-            swap(current, previous);
+            swap(previous, current);
             precompressor.setByteArray(&precompressed[0]);
             for(Frame<>::coord_t block = 0; block < (current.getAlignedWidth() * current.getAlignedHeight())
                                                     / (8 * 8); block += 4)

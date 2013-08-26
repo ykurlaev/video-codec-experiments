@@ -35,21 +35,6 @@ inline Frame<MIN_N, MAX_N>::Frame(coord_t width, coord_t height)
 }
 
 template <uint32_t MIN_N, uint32_t MAX_N>
-inline Frame<MIN_N, MAX_N>::Frame(const Frame &other)
-    : m_width(other.m_width), m_height(other.m_height),
-      m_alignedWidth(other.m_alignedWidth), m_alignedHeight(other.m_alignedHeight),
-      m_data(other.m_data), m_ptrs(other.m_ptrs)
-{}
-
-template <uint32_t MIN_N, uint32_t MAX_N>
-inline Frame<MIN_N, MAX_N> &Frame<MIN_N, MAX_N>::operator=(const Frame &other)
-{
-    Frame tmp(other);
-    swap(*this, tmp);
-    return *this;
-}
-
-template <uint32_t MIN_N, uint32_t MAX_N>
 inline typename Frame<MIN_N, MAX_N>::coord_t Frame<MIN_N, MAX_N>::getWidth() const 
 {
     return m_width;
@@ -211,14 +196,9 @@ inline Frame<MIN_N, MAX_N>::BaseIterator<T>::BaseIterator(data_t *ptr)
 {}
 
 template <uint32_t MIN_N, uint32_t MAX_N>
-inline Frame<MIN_N, MAX_N>::RegionIterator::RegionIterator()
-    : BaseIterator<RegionIterator>(NULL), m_pptr(NULL), m_x(0), m_y(0),
-      m_xstart(0), m_xend(0), m_yend(0), m_skip(0)
-{}
-
-template <uint32_t MIN_N, uint32_t MAX_N>
-inline Frame<MIN_N, MAX_N>::RegionIterator::RegionIterator(data_t *ptr, data_t **pptr, coord_t x, coord_t y,
-                                                coord_t xstart, coord_t xend, coord_t yend, coord_t skip)
+inline Frame<MIN_N, MAX_N>::RegionIterator::RegionIterator(data_t *ptr, data_t **pptr,
+                                                           coord_t x, coord_t y, coord_t xstart,
+                                                           coord_t xend, coord_t yend, coord_t skip)
     : BaseIterator<RegionIterator>(ptr), m_pptr(pptr), m_x(x), m_y(y),
       m_xstart(xstart), m_xend(xend), m_yend(yend), m_skip(skip)
 {}
@@ -246,11 +226,6 @@ inline void Frame<MIN_N, MAX_N>::RegionIterator::increment()
 }
 
 template <uint32_t MIN_N, uint32_t MAX_N>
-inline Frame<MIN_N, MAX_N>::HorizontalBlockIterator::HorizontalBlockIterator()
-    : BaseIterator<HorizontalBlockIterator>(NULL)
-{}
-
-template <uint32_t MIN_N, uint32_t MAX_N>
 inline Frame<MIN_N, MAX_N>::HorizontalBlockIterator::HorizontalBlockIterator(data_t *ptr)
     : BaseIterator<HorizontalBlockIterator>(ptr)
 {}
@@ -260,12 +235,6 @@ inline void Frame<MIN_N, MAX_N>::HorizontalBlockIterator::increment()
 {
     this->m_ptr++;
 }
-
-template <uint32_t MIN_N, uint32_t MAX_N>
-inline Frame<MIN_N, MAX_N>::VerticalBlockIterator::VerticalBlockIterator()
-    : BaseIterator<VerticalBlockIterator>(NULL), m_origin(NULL), m_x(0), m_y(0), m_block(0), m_count(0)
-{}
-
 
 template <uint32_t MIN_N, uint32_t MAX_N>
 inline Frame<MIN_N, MAX_N>::VerticalBlockIterator::VerticalBlockIterator(data_t *ptr, coord_t count)
@@ -305,12 +274,6 @@ inline void Frame<MIN_N, MAX_N>::VerticalBlockIterator::increment()
         this->m_ptr += MIN_N;
     }
 }
-
-template <uint32_t MIN_N, uint32_t MAX_N>
-inline Frame<MIN_N, MAX_N>::ScanningBlockIterator::ScanningBlockIterator()
-    : BaseIterator<ScanningBlockIterator>(NULL), m_origin(NULL), m_block(0), m_count(0),
-      m_scan(NULL), m_scanPtr(NULL)
-{}
 
 template <uint32_t MIN_N, uint32_t MAX_N>
 inline Frame<MIN_N, MAX_N>::ScanningBlockIterator::ScanningBlockIterator(data_t *ptr, coord_t count,

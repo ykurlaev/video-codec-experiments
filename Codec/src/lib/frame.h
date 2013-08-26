@@ -24,8 +24,6 @@ class Frame
         typedef uint32_t coord_t;
         typedef int data_t;
         Frame(coord_t width, coord_t height);
-        Frame(const Frame &other);
-        Frame &operator=(const Frame &other);
         coord_t getWidth() const;
         coord_t getHeight() const;
         coord_t getAlignedWidth() const;
@@ -75,9 +73,8 @@ template <uint32_t MIN_N, uint32_t MAX_N>
 class Frame<MIN_N, MAX_N>::RegionIterator : public BaseIterator<RegionIterator>
 {
     public:
-        RegionIterator();
-        RegionIterator(data_t *ptr, data_t **pptr, coord_t x, coord_t y, coord_t xstart,
-                       coord_t xend, coord_t yend, coord_t skip);
+        RegionIterator(data_t *ptr = NULL, data_t **pptr = NULL, coord_t x = 0, coord_t y = 0,
+                       coord_t xstart = 0, coord_t xend = 0, coord_t yend = 0, coord_t skip = 0);
         void increment();
     private:
         data_t **m_pptr;
@@ -93,8 +90,7 @@ template <uint32_t MIN_N, uint32_t MAX_N>
 class Frame<MIN_N, MAX_N>::HorizontalBlockIterator : public BaseIterator<HorizontalBlockIterator>
 {
     public:
-        HorizontalBlockIterator();
-        HorizontalBlockIterator(data_t *ptr);
+        HorizontalBlockIterator(data_t *ptr = NULL);
         void increment();
 };
 
@@ -102,8 +98,7 @@ template <uint32_t MIN_N, uint32_t MAX_N>
 class Frame<MIN_N, MAX_N>::VerticalBlockIterator : public BaseIterator<VerticalBlockIterator>
 {
     public:
-        VerticalBlockIterator();
-        VerticalBlockIterator(data_t *ptr, coord_t count);
+        VerticalBlockIterator(data_t *ptr = NULL, coord_t count = 0);
         void increment();
     private:
         data_t *m_origin;
@@ -117,8 +112,7 @@ template <uint32_t MIN_N, uint32_t MAX_N>
 class Frame<MIN_N, MAX_N>::ScanningBlockIterator : public BaseIterator<ScanningBlockIterator>
 {
     public:
-        ScanningBlockIterator();
-        ScanningBlockIterator(data_t *ptr, coord_t count, const coord_t *scan);
+        ScanningBlockIterator(data_t *ptr = NULL, coord_t count = 0, const coord_t *scan = NULL);
         void increment();
     private:
         data_t *m_origin;

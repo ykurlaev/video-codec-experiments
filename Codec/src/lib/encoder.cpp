@@ -106,7 +106,7 @@ int encode(int argc, char *argv[])
 #endif
         for(unsigned count = 1; ; count++)
         {
-            swap(current, previous);
+            swap(previous, current);
             current.clear();
             if(byteArraySerializer.deserializeByteArray(in, &uncompressed[0], uncompressed.size(), false)
                != uncompressed.size())
