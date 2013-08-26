@@ -105,12 +105,17 @@ int decode(int argc, char *argv[])
             zlibDecompress(&compressed[0], &precompressed[0], compressedSize, precompressed.size());
             swap(current, previous);
             precompressor.setByteArray(&precompressed[0]);
-            precompressor.applyReverse(current.scanningBegin(zigZagScan), current.scanningEnd());
-            quantization.applyReverse(current.horizontalBegin(), current.horizontalEnd());
-            dct.applyReverse(current.horizontalBegin(), current.horizontalEnd());
-            dct.applyReverse(current.verticalBegin(), current.verticalEnd());
-            predictor.applyReverse(current.horizontalBegin(), current.horizontalEnd(),
-                                   previous.horizontalBegin());
+            for(Frame<>::coord_t block = 0; block < (current.getAlignedWidth() * current.getAlignedHeight())
+                                                    / (8 * 8); block += 4)
+            {
+                precompressor.applyReverse(current.scanningBegin(zigZagScan, block),
+                                           current.scanningBegin(zigZagScan, block + 4));
+                quantization.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
+                dct.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
+                dct.applyReverse(current.verticalBegin(block), current.verticalBegin(block + 4));
+                predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                       previous.horizontalBegin(block));
+            }
             normalize(current.horizontalBegin(), current.horizontalEnd());
             copy(current.begin(), current.end(), uncompressed.begin());
             byteArraySerializer.serializeByteArray(&uncompressed[0], uncompressed.size(), out, false);
@@ -119,7 +124,7 @@ int decode(int argc, char *argv[])
         {
             cerr << "Ok\n";
         }
-    #ifdef MEASURE_TIME
+#ifdef MEASURE_TIME
         clock_t end = clock();
         cerr << static_cast<double>(end - begin) / CLOCKS_PER_SEC << "\n";
 #endif

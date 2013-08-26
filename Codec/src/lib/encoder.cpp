@@ -119,23 +119,28 @@ int encode(int argc, char *argv[])
             }
             copy(uncompressed.begin(), uncompressed.end(), current.begin());
             precompressor.setByteArray(&precompressed[0]);
-            predictor.applyForward(current.horizontalBegin(), current.horizontalEnd(),
-                                   previous.horizontalBegin());
-            dct.applyForward(current.horizontalBegin(), current.horizontalEnd());
-            dct.applyForward(current.verticalBegin(), current.verticalEnd());
-            quantization.applyForward(current.horizontalBegin(), current.horizontalEnd());
-            precompressor.applyForward(current.scanningBegin(zigZagScan), current.scanningEnd());
+            for(Frame<>::coord_t block = 0; block < (current.getAlignedWidth() * current.getAlignedHeight())
+                                                    / (8 * 8); block += 4)
+            {
+                predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                       previous.horizontalBegin(block));
+                dct.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4));
+                dct.applyForward(current.verticalBegin(block), current.verticalBegin(block + 4));
+                quantization.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4));
+                precompressor.applyForward(current.scanningBegin(zigZagScan, block),
+                                           current.scanningBegin(zigZagScan, block + 4));
+                //###
+                quantization.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
+                dct.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
+                dct.applyReverse(current.verticalBegin(block), current.verticalBegin(block + 4));
+                predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                       previous.horizontalBegin(block));
+                //###
+            }
+            normalize(current.horizontalBegin(), current.horizontalEnd());
             uint32_t compressedSize = zlibCompress(&precompressed[0], &compressed[0],
                                                    precompressor.getBytesProcessed(), compressed.size());
             byteArraySerializer.serializeByteArray(&compressed[0], compressedSize, out);
-            //###
-            quantization.applyReverse(current.horizontalBegin(), current.horizontalEnd());
-            dct.applyReverse(current.horizontalBegin(), current.horizontalEnd());
-            dct.applyReverse(current.verticalBegin(), current.verticalEnd());
-            predictor.applyReverse(current.horizontalBegin(), current.horizontalEnd(),
-                                   previous.horizontalBegin());
-            normalize(current.horizontalBegin(), current.horizontalEnd());
-            //###
         }
         if(!silent)
         {
