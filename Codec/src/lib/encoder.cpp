@@ -104,18 +104,18 @@ int encode(int argc, char *argv[])
 #ifdef MEASURE_TIME
         clock_t begin = clock();
 #endif
-        for(unsigned count = 0; ; count++)
+        for(unsigned count = 1; ; count++)
         {
-            if(!silent)
-            {
-                cerr << count << " ";
-            }
             swap(current, previous);
             current.clear();
             if(byteArraySerializer.deserializeByteArray(in, &uncompressed[0], uncompressed.size(), false)
                != uncompressed.size())
             {
                 break;
+            }
+            if(!silent)
+            {
+                cerr << count << " ";
             }
             copy(uncompressed.begin(), uncompressed.end(), current.begin());
             precompressor.setByteArray(&precompressed[0]);

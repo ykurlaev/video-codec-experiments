@@ -91,16 +91,16 @@ int decode(int argc, char *argv[])
 #ifdef MEASURE_TIME
         clock_t begin = clock();
 #endif
-        for(unsigned count = 0; ; count++)
+        for(unsigned count = 1; ; count++)
         {
-            if(!silent)
-            {
-                cerr << count << " ";
-            }
             uint32_t compressedSize = byteArraySerializer.deserializeByteArray(in, &compressed[0], compressed.size());
             if(compressedSize == 0)
             {
                 break;
+            }
+            if(!silent)
+            {
+                cerr << count << " ";
             }
             zlibDecompress(&compressed[0], &precompressed[0], compressedSize, precompressed.size());
             swap(current, previous);
