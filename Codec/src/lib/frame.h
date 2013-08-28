@@ -29,6 +29,8 @@ class Frame
         coord_t getAlignedWidth() const;
         coord_t getAlignedHeight() const;
         void clear();
+        void fromByteArray(const uint8_t *byteArray);
+        void toByteArray(uint8_t *byteArray);
         RegionIterator begin();
         RegionIterator end();
         RegionIterator regionBegin(coord_t xstart, coord_t ystart, coord_t width, coord_t height);

@@ -64,6 +64,34 @@ inline void Frame<MIN_N, MAX_N>::clear()
     std::memset(&m_data[0], 0, m_data.size() * sizeof(data_t));
 }
 
+template<uint32_t MIN_N, uint32_t MAX_N>
+inline void Frame<MIN_N, MAX_N>::fromByteArray(const uint8_t *byteArray)
+{
+    data_t **pptr = &m_ptrs[0];
+    for(size_t y = 0; y < m_height; y++)
+    {
+        for(size_t x = 0; x < m_width; x++)
+        {
+            *(*pptr++) = *byteArray++;
+        }
+        pptr += m_alignedWidth - m_width;
+    }
+}
+
+template<uint32_t MIN_N, uint32_t MAX_N>
+inline void Frame<MIN_N, MAX_N>::toByteArray(uint8_t *byteArray)
+{
+    data_t **pptr = &m_ptrs[0];
+    for(size_t y = 0; y < m_height; y++)
+    {
+        for(size_t x = 0; x < m_width; x++)
+        {
+            *byteArray++ = static_cast<uint8_t>(*(*pptr++));
+        }
+        pptr += m_alignedWidth - m_width;
+    }
+}
+
 template <uint32_t MIN_N, uint32_t MAX_N>
 inline typename Frame<MIN_N, MAX_N>::RegionIterator Frame<MIN_N, MAX_N>::begin()
 {

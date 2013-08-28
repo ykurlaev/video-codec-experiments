@@ -117,7 +117,7 @@ int decode(int argc, char *argv[])
                                        previous.horizontalBegin(block));
             }
             normalize(current.horizontalBegin(), current.horizontalEnd());
-            copy(current.begin(), current.end(), uncompressed.begin());
+            current.toByteArray(&uncompressed[0]);
             byteArraySerializer.serializeByteArray(&uncompressed[0], uncompressed.size(), out, false);
         }
         if(!silent)

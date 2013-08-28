@@ -117,7 +117,7 @@ int encode(int argc, char *argv[])
             {
                 cerr << count << " ";
             }
-            copy(uncompressed.begin(), uncompressed.end(), current.begin());
+            current.fromByteArray(&uncompressed[0]);
             precompressor.setByteArray(&precompressed[0]);
             for(Frame<>::coord_t block = 0; block < (current.getAlignedWidth() * current.getAlignedHeight())
                                                     / (8 * 8); block += 4)
