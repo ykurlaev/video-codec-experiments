@@ -11,6 +11,7 @@
 #include <exception>
 #include "bytearrayserializer.h"
 #include "dct.h"
+#include "findsad.h"
 #include "frame.h"
 #include "normalize.h"
 #include "precompressor.h"
@@ -90,6 +91,8 @@ int encode(int argc, char *argv[])
         vector<uint8_t> uncompressed(current.getWidth() * current.getHeight());
         vector<uint8_t> precompressed(current.getAlignedWidth() * current.getAlignedHeight() * Precompressor::MAX_BYTES);
         vector<uint8_t> compressed(precompressed.size());
+        vector<uint8_t> macroblockIsInter((current.getAlignedWidth() * current.getAlignedHeight()) / (8 * 8) / 8);
+        FindSAD findSAD;
         Predictor predictor;
         DCT dct;
         Quantization quantization(flat, quality);
@@ -122,8 +125,17 @@ int encode(int argc, char *argv[])
             for(Frame<>::coord_t block = 0; block < (current.getAlignedWidth() * current.getAlignedHeight())
                                                     / (8 * 8); block += 4)
             {
-                predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
-                                       previous.horizontalBegin(block));
+                if(findSAD(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                           previous.horizontalBegin(block)) < 10 * 16 * 16)
+                {
+                    macroblockIsInter[(block / 4) / 8] |= (1 << ((block / 4) % 8));
+                    predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           previous.horizontalBegin(block));
+                }
+                else
+                {
+                    macroblockIsInter[(block / 4) / 8] &= ~(1 << ((block / 4) % 8));
+                }
                 dct.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyForward(current.verticalBegin(block), current.verticalBegin(block + 4));
                 quantization.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4));
@@ -133,13 +145,17 @@ int encode(int argc, char *argv[])
                 quantization.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.verticalBegin(block), current.verticalBegin(block + 4));
-                predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
-                                       previous.horizontalBegin(block));
+                if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
+                {
+                    predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           previous.horizontalBegin(block));
+                }
                 //###
             }
             normalize(current.horizontalBegin(), current.horizontalEnd());
             uint32_t compressedSize = zlibCompress(&precompressed[0], &compressed[0],
                                                    precompressor.getBytesProcessed(), compressed.size());
+            byteArraySerializer.serializeByteArray(&macroblockIsInter[0], macroblockIsInter.size(), out, false);
             byteArraySerializer.serializeByteArray(&compressed[0], compressedSize, out);
         }
         if(!silent)

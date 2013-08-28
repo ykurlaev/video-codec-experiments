@@ -72,6 +72,7 @@ int decode(int argc, char *argv[])
         vector<uint8_t> uncompressed(current.getWidth() * current.getHeight());
         vector<uint8_t> precompressed(current.getAlignedWidth() * current.getAlignedHeight() * Precompressor::MAX_BYTES);
         vector<uint8_t> compressed(precompressed.size());
+        vector<uint8_t> macroblockIsInter((current.getAlignedWidth() * current.getAlignedHeight()) / (8 * 8) / 8);
         ZlibDecompress zlibDecompress;
         const Frame<>::coord_t *zigZagScan = ZigZagScan<8>::getScan();
         Precompressor precompressor;
@@ -93,6 +94,7 @@ int decode(int argc, char *argv[])
 #endif
         for(unsigned count = 1; ; count++)
         {
+            byteArraySerializer.deserializeByteArray(in, &macroblockIsInter[0], macroblockIsInter.size(), false);
             uint32_t compressedSize = byteArraySerializer.deserializeByteArray(in, &compressed[0], compressed.size());
             if(compressedSize == 0)
             {
@@ -113,8 +115,11 @@ int decode(int argc, char *argv[])
                 quantization.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.verticalBegin(block), current.verticalBegin(block + 4));
-                predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
-                                       previous.horizontalBegin(block));
+                if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
+                {
+                    predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           previous.horizontalBegin(block));
+                }
             }
             normalize(current.horizontalBegin(), current.horizontalEnd());
             current.toByteArray(&uncompressed[0]);
