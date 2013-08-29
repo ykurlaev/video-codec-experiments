@@ -2,6 +2,7 @@
 #define CODEC_TEST_H
 
 #include <iostream>
+#include <vector>
 #include <exception>
 
 #define TEST_RUN(function) \
@@ -12,6 +13,7 @@ class Test
     public:
         virtual void operator()() = 0;
         virtual ~Test();
+        static void runTests(std::vector<Test *> tests);
     protected:
         template <typename F>
         void runTest(F f, const char *name);

@@ -205,11 +205,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\test\frametest.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test\main.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\test\test.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\test\zigzagscantest.cpp"
 				>
 			</File>
 		</Filter>
@@ -223,7 +231,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\test\frametest.h"
+				>
+			</File>
+			<File
 				RelativePath=".\test\test.h"
+				>
+			</File>
+			<File
+				RelativePath=".\test\zigzagscantest.h"
 				>
 			</File>
 		</Filter>
