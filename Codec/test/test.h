@@ -14,12 +14,12 @@ class Test
         virtual ~Test();
     protected:
         template <typename F>
-        void runTest(F f, char *name);
-        static void fail(char *why);
+        void runTest(F f, const char *name);
+        static void fail(const char *why);
 };
 
 template <typename F>
-inline void Test::runTest(F f, char *name)
+inline void Test::runTest(F f, const char *name)
 {
     std::cerr << "Running test " << name << "... ";
     try
@@ -39,4 +39,4 @@ inline void Test::runTest(F f, char *name)
     }
 }
 
-#endif CODEC_TEST_H
+#endif //CODEC_TEST_H

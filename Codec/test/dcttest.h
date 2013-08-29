@@ -8,7 +8,9 @@ class DCTTest : public Test
     public:
         virtual void operator()();
     private:
-        static bool testDct();
+        static bool testDctRandom();
+        static bool testDctBasisForward();
+        static bool testDctBasisReverse();
 };
 
 #endif //CODEC_DCTTEST_H

@@ -3,7 +3,7 @@
 
 using std::runtime_error;
 
-void Test::fail(char *why)
+void Test::fail(const char *why)
 {
     throw runtime_error(why);
 }
