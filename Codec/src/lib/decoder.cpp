@@ -72,7 +72,7 @@ int decode(int argc, char *argv[])
         vector<uint8_t> uncompressed(current.getWidth() * current.getHeight());
         vector<uint8_t> precompressed(current.getAlignedWidth() * current.getAlignedHeight() * Precompressor::MAX_BYTES);
         vector<uint8_t> compressed(precompressed.size());
-        vector<uint8_t> macroblockIsInter((current.getAlignedWidth() * current.getAlignedHeight()) / (8 * 8) / 8);
+        vector<uint8_t> macroblockIsInter((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16) / 8);
         ZlibDecompress zlibDecompress;
         const Frame<>::coord_t *zigZagScan = ZigZagScan<8>::getScan();
         Precompressor precompressor;
