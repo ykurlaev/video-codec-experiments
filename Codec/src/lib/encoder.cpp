@@ -88,10 +88,12 @@ int encode(int argc, char *argv[])
         byteArraySerializer.serializeUint32(flat ? 1 : 0, out);
         Frame<8, 16> current(width, height);
         Frame<8, 16> previous(width, height);
+        Frame<8, 16> prevResidual(width, height);
         vector<uint8_t> uncompressed(current.getWidth() * current.getHeight());
         vector<uint8_t> precompressed(current.getAlignedWidth() * current.getAlignedHeight() * Precompressor::MAX_BYTES);
         vector<uint8_t> compressed(precompressed.size());
         vector<uint8_t> macroblockIsInter((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16) / 8);
+        vector<uint8_t> prevMacroblockIsInter((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16) / 8);
         FindSAD findSAD;
         Predictor predictor;
         DCT dct;
@@ -109,6 +111,7 @@ int encode(int argc, char *argv[])
 #endif
         for(unsigned count = 1; ; count++)
         {
+            swap(prevMacroblockIsInter, macroblockIsInter);
             swap(previous, current);
             current.clear();
             if(byteArraySerializer.deserializeByteArray(in, &uncompressed[0], uncompressed.size(), false)
@@ -136,6 +139,12 @@ int encode(int argc, char *argv[])
                 {
                     macroblockIsInter[(block / 4) / 8] &= ~(1 << ((block / 4) % 8));
                 }
+                if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0 &&
+                   (prevMacroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
+                {
+                    predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           prevResidual.horizontalBegin(block));
+                }
                 dct.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyForward(current.verticalBegin(block), current.verticalBegin(block + 4));
                 quantization.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4));
@@ -145,6 +154,14 @@ int encode(int argc, char *argv[])
                 quantization.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.verticalBegin(block), current.verticalBegin(block + 4));
+                if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0 &&
+                   (prevMacroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
+                {
+                    predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           prevResidual.horizontalBegin(block));
+                }
+                copy(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                     prevResidual.horizontalBegin(block));
                 if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
                 {
                     predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),

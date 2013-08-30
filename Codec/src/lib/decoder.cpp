@@ -69,10 +69,12 @@ int decode(int argc, char *argv[])
         bool flat = uflat != 0;
         Frame<8, 16> current(width, height);
         Frame<8, 16> previous(width, height);
+        Frame<8, 16> prevResidual(width, height);
         vector<uint8_t> uncompressed(current.getWidth() * current.getHeight());
         vector<uint8_t> precompressed(current.getAlignedWidth() * current.getAlignedHeight() * Precompressor::MAX_BYTES);
         vector<uint8_t> compressed(precompressed.size());
         vector<uint8_t> macroblockIsInter((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16) / 8);
+        vector<uint8_t> prevMacroblockIsInter((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16) / 8);
         ZlibDecompress zlibDecompress;
         const Frame<>::coord_t *zigZagScan = ZigZagScan<8>::getScan();
         Precompressor precompressor;
@@ -94,6 +96,7 @@ int decode(int argc, char *argv[])
 #endif
         for(unsigned count = 1; ; count++)
         {
+            swap(prevMacroblockIsInter, macroblockIsInter);
             byteArraySerializer.deserializeByteArray(in, &macroblockIsInter[0], macroblockIsInter.size(), false);
             uint32_t compressedSize = byteArraySerializer.deserializeByteArray(in, &compressed[0], compressed.size());
             if(compressedSize == 0)
@@ -115,6 +118,14 @@ int decode(int argc, char *argv[])
                 quantization.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.verticalBegin(block), current.verticalBegin(block + 4));
+                if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0 &&
+                   (prevMacroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
+                {
+                    predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           prevResidual.horizontalBegin(block));
+                }
+                copy(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                     prevResidual.horizontalBegin(block));
                 if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
                 {
                     predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
