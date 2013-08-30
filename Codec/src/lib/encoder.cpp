@@ -10,7 +10,9 @@
 #include <algorithm>
 #include <exception>
 #include "bytearrayserializer.h"
+#include "constantvalueiterator.h"
 #include "dct.h"
+#include "findaverage.h"
 #include "findsad.h"
 #include "frame.h"
 #include "normalize.h"
@@ -92,6 +94,7 @@ int encode(int argc, char *argv[])
         vector<uint8_t> precompressed(current.getAlignedWidth() * current.getAlignedHeight() * Precompressor::MAX_BYTES);
         vector<uint8_t> compressed(precompressed.size());
         vector<uint8_t> macroblockIsInter((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16) / 8);
+        FindAverage findAverage;
         FindSAD findSAD;
         Predictor predictor;
         DCT dct;
@@ -125,6 +128,17 @@ int encode(int argc, char *argv[])
             for(Frame<>::coord_t block = 0; block < (current.getAlignedWidth() * current.getAlignedHeight())
                                                     / (8 * 8); block += 4)
             {
+                if(block != 0)
+                {
+                    predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           makeConstantValueIterator(findAverage(current.horizontalBegin(block - 4),
+                                                                                 current.horizontalBegin(block))));
+                }
+                else
+                {
+                    predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           makeConstantValueIterator(128));
+                }
                 if(findSAD(current.horizontalBegin(block), current.horizontalBegin(block + 4),
                            previous.horizontalBegin(block)) < 10 * 16 * 16)
                 {
@@ -149,6 +163,17 @@ int encode(int argc, char *argv[])
                 {
                     predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
                                            previous.horizontalBegin(block));
+                }
+                if(block != 0)
+                {
+                    predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           makeConstantValueIterator(findAverage(current.horizontalBegin(block - 4),
+                                                                                 current.horizontalBegin(block))));
+                }
+                else
+                {
+                    predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           makeConstantValueIterator(128));
                 }
                 //###
             }

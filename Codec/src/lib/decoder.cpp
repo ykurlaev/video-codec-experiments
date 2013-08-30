@@ -9,7 +9,9 @@
 #include <algorithm>
 #include <exception>
 #include "bytearrayserializer.h"
+#include "constantvalueiterator.h"
 #include "dct.h"
+#include "findaverage.h"
 #include "frame.h"
 #include "normalize.h"
 #include "precompressor.h"
@@ -78,6 +80,7 @@ int decode(int argc, char *argv[])
         Precompressor precompressor;
         Quantization quantization(flat, quality);
         DCT dct;
+        FindAverage findAverage;
         Predictor predictor;
         Normalize normalize;
         if(!silent)
@@ -119,6 +122,17 @@ int decode(int argc, char *argv[])
                 {
                     predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
                                            previous.horizontalBegin(block));
+                }
+                if(block != 0)
+                {
+                    predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           makeConstantValueIterator(findAverage(current.horizontalBegin(block - 4),
+                                                                                 current.horizontalBegin(block))));
+                }
+                else
+                {
+                    predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           makeConstantValueIterator(128));
                 }
             }
             normalize(current.horizontalBegin(), current.horizontalEnd());
