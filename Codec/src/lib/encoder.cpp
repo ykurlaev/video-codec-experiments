@@ -1,4 +1,5 @@
 #include "encoder.h"
+#include <cstdlib>
 #include <cstdio>
 #include <cstring>
 #ifdef MEASURE_TIME
@@ -25,6 +26,7 @@
 namespace Codec
 {
 
+using std::abs;
 using std::fopen;
 using std::strncmp;
 #ifdef MEASURE_TIME
@@ -94,8 +96,9 @@ int encode(int argc, char *argv[])
         vector<uint8_t> uncompressed(current.getWidth() * current.getHeight());
         vector<uint8_t> precompressed(current.getAlignedWidth() * current.getAlignedHeight() * Precompressor::MAX_BYTES);
         vector<uint8_t> compressed(precompressed.size());
-        vector<uint8_t> macroblockIsInter((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16) / 8);
-        vector<uint8_t> prevMacroblockIsInter((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16) / 8);
+        vector<uint8_t> macroblockIsInterPred((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16) / 8);
+        vector<uint8_t> prevMacroblockIsInterPred((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16) / 8);
+        vector<uint8_t> macroblockIsIntraPred((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16) / 8);
         FindAverage findAverage;
         FindSAD findSAD;
         Predictor predictor;
@@ -114,7 +117,7 @@ int encode(int argc, char *argv[])
 #endif
         for(unsigned count = 1; ; count++)
         {
-            swap(prevMacroblockIsInter, macroblockIsInter);
+            swap(prevMacroblockIsInterPred, macroblockIsInterPred);
             swap(previous, current);
             current.clear();
             if(byteArraySerializer.deserializeByteArray(in, &uncompressed[0], uncompressed.size(), false)
@@ -133,28 +136,42 @@ int encode(int argc, char *argv[])
             {
                 if(block != 0)
                 {
-                    predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
-                                           makeConstantValueIterator(findAverage(current.horizontalBegin(block - 4),
-                                                                                 current.horizontalBegin(block))));
+                    Frame<>::data_t macroblockAverage = findAverage(current.horizontalBegin(block),
+                                                                    current.horizontalBegin(block + 4));
+                    Frame<>::data_t neighborAverage = findAverage(current.horizontalBegin(block - 4),
+                                                                  current.horizontalBegin(block));
+                    if(abs(macroblockAverage - neighborAverage) < 64)
+                    {
+                        macroblockIsIntraPred[(block / 4) / 8] |= (1 << ((block / 4) % 8));
+                        predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                               makeConstantValueIterator(neighborAverage));
+                    }
+                    else
+                    {
+                        macroblockIsIntraPred[(block / 4) / 8] &= ~(1 << ((block / 4) % 8));
+                        predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                               makeConstantValueIterator(128));
+                    }
                 }
                 else
                 {
+                    macroblockIsIntraPred[(block / 4) / 8] &= ~(1 << ((block / 4) % 8));
                     predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
                                            makeConstantValueIterator(128));
-                }
+                }                
                 if(findSAD(current.horizontalBegin(block), current.horizontalBegin(block + 4),
                            previous.horizontalBegin(block)) < 10 * 16 * 16)
                 {
-                    macroblockIsInter[(block / 4) / 8] |= (1 << ((block / 4) % 8));
+                    macroblockIsInterPred[(block / 4) / 8] |= (1 << ((block / 4) % 8));
                     predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
                                            previous.horizontalBegin(block));
                 }
                 else
                 {
-                    macroblockIsInter[(block / 4) / 8] &= ~(1 << ((block / 4) % 8));
+                    macroblockIsInterPred[(block / 4) / 8] &= ~(1 << ((block / 4) % 8));
                 }
-                if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0 &&
-                   (prevMacroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
+                if((macroblockIsInterPred[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0 &&
+                   (prevMacroblockIsInterPred[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
                 {
                     predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
                                            prevResidual.horizontalBegin(block));
@@ -168,20 +185,20 @@ int encode(int argc, char *argv[])
                 quantization.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.verticalBegin(block), current.verticalBegin(block + 4));
-                if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0 &&
-                   (prevMacroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
+                if((macroblockIsInterPred[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0 &&
+                   (prevMacroblockIsInterPred[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
                 {
                     predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
                                            prevResidual.horizontalBegin(block));
                 }
                 copy(current.horizontalBegin(block), current.horizontalBegin(block + 4),
                      prevResidual.horizontalBegin(block));
-                if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
+                if((macroblockIsInterPred[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
                 {
                     predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
                                            previous.horizontalBegin(block));
                 }
-                if(block != 0)
+                if((macroblockIsIntraPred[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
                 {
                     predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
                                            makeConstantValueIterator(findAverage(current.horizontalBegin(block - 4),
@@ -197,7 +214,8 @@ int encode(int argc, char *argv[])
             normalize(current.horizontalBegin(), current.horizontalEnd());
             uint32_t compressedSize = zlibCompress(&precompressed[0], &compressed[0],
                                                    precompressor.getBytesProcessed(), compressed.size());
-            byteArraySerializer.serializeByteArray(&macroblockIsInter[0], macroblockIsInter.size(), out, false);
+            byteArraySerializer.serializeByteArray(&macroblockIsInterPred[0], macroblockIsInterPred.size(), out, false);
+            byteArraySerializer.serializeByteArray(&macroblockIsIntraPred[0], macroblockIsIntraPred.size(), out, false);
             byteArraySerializer.serializeByteArray(&compressed[0], compressedSize, out);
         }
         if(!silent)
