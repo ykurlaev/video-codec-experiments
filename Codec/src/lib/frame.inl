@@ -116,7 +116,7 @@ inline typename Frame<MIN_N, MAX_N>::RegionIterator
 
 template <uint32_t MIN_N, uint32_t MAX_N>
 inline typename Frame<MIN_N, MAX_N>::RegionIterator
-    Frame<MIN_N, MAX_N>::regionEnd(coord_t xstart, coord_t ystart, coord_t width, coord_t height)
+    Frame<MIN_N, MAX_N>::regionEnd()
 {
     return RegionIterator();
 }

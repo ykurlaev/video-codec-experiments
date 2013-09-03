@@ -34,7 +34,7 @@ class Frame
         RegionIterator begin();
         RegionIterator end();
         RegionIterator regionBegin(coord_t xstart, coord_t ystart, coord_t width, coord_t height);
-        RegionIterator regionEnd(coord_t xstart, coord_t ystart, coord_t width, coord_t height);
+        RegionIterator regionEnd();
         HorizontalBlockIterator horizontalBegin(coord_t block = 0);
         HorizontalBlockIterator horizontalEnd();
         VerticalBlockIterator verticalBegin(coord_t block = 0);
