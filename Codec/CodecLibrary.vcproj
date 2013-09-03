@@ -195,6 +195,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\lib\motionestimator.inl"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lib\normalize.inl"
 				>
 			</File>
@@ -254,6 +258,10 @@
 			</File>
 			<File
 				RelativePath=".\src\lib\frame.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\motionestimator.h"
 				>
 			</File>
 			<File

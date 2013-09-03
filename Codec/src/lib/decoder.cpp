@@ -73,6 +73,8 @@ int decode(int argc, char *argv[])
         vector<uint8_t> precompressed(current.getAlignedWidth() * current.getAlignedHeight() * Precompressor::MAX_BYTES);
         vector<uint8_t> compressed(precompressed.size());
         vector<uint8_t> macroblockIsInter((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16) / 8);
+        vector<int8_t> motionVectorsX((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16));
+        vector<int8_t> motionVectorsY((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16));
         ZlibDecompress zlibDecompress;
         const Frame<>::coord_t *zigZagScan = ZigZagScan<8>::getScan();
         Precompressor precompressor;
@@ -95,6 +97,10 @@ int decode(int argc, char *argv[])
         for(unsigned count = 1; ; count++)
         {
             byteArraySerializer.deserializeByteArray(in, &macroblockIsInter[0], macroblockIsInter.size(), false);
+            byteArraySerializer.deserializeByteArray(in, reinterpret_cast<uint8_t *>(&motionVectorsX[0]),
+                                                     motionVectorsX.size(), false);
+            byteArraySerializer.deserializeByteArray(in, reinterpret_cast<uint8_t *>(&motionVectorsY[0]),
+                                                     motionVectorsY.size(), false);
             uint32_t compressedSize = byteArraySerializer.deserializeByteArray(in, &compressed[0], compressed.size());
             if(compressedSize == 0)
             {
@@ -110,6 +116,9 @@ int decode(int argc, char *argv[])
             for(Frame<>::coord_t block = 0; block < (current.getAlignedWidth() * current.getAlignedHeight())
                                                     / (8 * 8); block += 4)
             {
+                Frame<>::coord_t macroblockWidth = current.getAlignedWidth() / 16;
+                Frame<>::coord_t currentX = ((block / 4) % macroblockWidth) * 16,
+                                 currentY = ((block / 4) / macroblockWidth) * 16;
                 precompressor.applyReverse(current.scanningBegin(zigZagScan, block),
                                            current.scanningBegin(zigZagScan, block + 4));
                 quantization.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
@@ -117,8 +126,11 @@ int decode(int argc, char *argv[])
                 dct.applyReverse(current.verticalBegin(block), current.verticalBegin(block + 4));
                 if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
                 {
-                    predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
-                                           previous.horizontalBegin(block));
+                    predictor.applyReverse(current.regionBegin(currentX, currentY, 16, 16),
+                                           current.regionEnd(),
+                                           previous.regionBegin(currentX + motionVectorsX[block / 4],
+                                                                currentY + motionVectorsY[block / 4],
+                                                                16, 16));
                 }
             }
             normalize(current.horizontalBegin(), current.horizontalEnd());
