@@ -75,6 +75,9 @@ int decode(int argc, char *argv[])
         vector<uint8_t> macroblockIsInter((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16) / 8);
         vector<int8_t> motionVectorsX((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16));
         vector<int8_t> motionVectorsY((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16));
+        vector<uint8_t> precompressedMeta((macroblockIsInter.size() + motionVectorsX.size()
+                                           + motionVectorsY.size()) * Precompressor::MAX_BYTES);
+        vector<uint8_t> compressedMeta(precompressedMeta.size());
         ZlibDecompress zlibDecompress;
         const Frame<>::coord_t *zigZagScan = ZigZagScan<8>::getScan();
         Precompressor precompressor;
@@ -96,11 +99,17 @@ int decode(int argc, char *argv[])
 #endif
         for(unsigned count = 1; ; count++)
         {
-            byteArraySerializer.deserializeByteArray(in, &macroblockIsInter[0], macroblockIsInter.size(), false);
-            byteArraySerializer.deserializeByteArray(in, reinterpret_cast<uint8_t *>(&motionVectorsX[0]),
-                                                     motionVectorsX.size(), false);
-            byteArraySerializer.deserializeByteArray(in, reinterpret_cast<uint8_t *>(&motionVectorsY[0]),
-                                                     motionVectorsY.size(), false);
+            uint32_t compressedMetaSize =
+                byteArraySerializer.deserializeByteArray(in, &compressedMeta[0], compressedMeta.size());
+            if(compressedMetaSize == 0)
+            {
+                break;
+            }
+            zlibDecompress(&compressedMeta[0], &precompressedMeta[0], compressedMetaSize, precompressedMeta.size());
+            precompressor.setByteArray(&precompressedMeta[0]);
+            precompressor.applyReverse(&macroblockIsInter[0], &macroblockIsInter[0] + macroblockIsInter.size());
+            precompressor.applyReverse(&motionVectorsX[0], &motionVectorsX[0] + motionVectorsX.size());
+            precompressor.applyReverse(&motionVectorsY[0], &motionVectorsY[0] + motionVectorsY.size());
             uint32_t compressedSize = byteArraySerializer.deserializeByteArray(in, &compressed[0], compressed.size());
             if(compressedSize == 0)
             {
@@ -131,7 +140,6 @@ int decode(int argc, char *argv[])
                                            previous.regionBegin(currentX + motionVectorsX[block / 4],
                                                                 currentY + motionVectorsY[block / 4],
                                                                 16, 16));
-                    //std::fill(current.regionBegin(currentX, currentY, 16, 16), current.regionEnd(), 0);
                 }
             }
             normalize(current.horizontalBegin(), current.horizontalEnd());

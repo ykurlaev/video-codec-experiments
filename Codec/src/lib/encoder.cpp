@@ -95,6 +95,9 @@ int encode(int argc, char *argv[])
         vector<uint8_t> macroblockIsInter((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16) / 8);
         vector<int8_t> motionVectorsX((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16));
         vector<int8_t> motionVectorsY((current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16));
+        vector<uint8_t> precompressedMeta((macroblockIsInter.size() + motionVectorsX.size()
+                                           + motionVectorsY.size()) * Precompressor::MAX_BYTES);
+        vector<uint8_t> compressedMeta(precompressedMeta.size());
         MotionEstimator motionEstimator;
         Predictor predictor;
         DCT dct;
@@ -170,13 +173,16 @@ int encode(int argc, char *argv[])
                 //###
             }
             normalize(current.horizontalBegin(), current.horizontalEnd());
+            uint32_t precompressedSize = precompressor.getBytesProcessed();
+            precompressor.setByteArray(&precompressedMeta[0]);
+            precompressor.applyForward(&macroblockIsInter[0], &macroblockIsInter[0] + macroblockIsInter.size());
+            precompressor.applyForward(&motionVectorsX[0], &motionVectorsX[0] + motionVectorsX.size());
+            precompressor.applyForward(&motionVectorsY[0], &motionVectorsY[0] + motionVectorsY.size());
+            uint32_t compressedMetaSize = zlibCompress(&precompressedMeta[0], &compressedMeta[0],
+                                                       precompressor.getBytesProcessed(), compressedMeta.size());
+            byteArraySerializer.serializeByteArray(&compressedMeta[0], compressedMetaSize, out);
             uint32_t compressedSize = zlibCompress(&precompressed[0], &compressed[0],
-                                                   precompressor.getBytesProcessed(), compressed.size());
-            byteArraySerializer.serializeByteArray(&macroblockIsInter[0], macroblockIsInter.size(), out, false);
-            byteArraySerializer.serializeByteArray(reinterpret_cast<uint8_t *>(&motionVectorsX[0]),
-                                                   motionVectorsX.size(), out, false);
-            byteArraySerializer.serializeByteArray(reinterpret_cast<uint8_t *>(&motionVectorsY[0]),
-                                                   motionVectorsY.size(), out, false);
+                                                   precompressedSize, compressed.size());
             byteArraySerializer.serializeByteArray(&compressed[0], compressedSize, out);
         }
         if(!silent)
