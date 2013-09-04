@@ -131,6 +131,7 @@ int decode(int argc, char *argv[])
                                            previous.regionBegin(currentX + motionVectorsX[block / 4],
                                                                 currentY + motionVectorsY[block / 4],
                                                                 16, 16));
+                    //std::fill(current.regionBegin(currentX, currentY, 16, 16), current.regionEnd(), 0);
                 }
             }
             normalize(current.horizontalBegin(), current.horizontalEnd());
