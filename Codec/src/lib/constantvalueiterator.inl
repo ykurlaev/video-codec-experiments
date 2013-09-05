@@ -9,7 +9,7 @@ inline ConstantValueIterator<T>::ConstantValueIterator(T value)
 template <typename T>
 inline bool ConstantValueIterator<T>::operator==(const ConstantValueIterator& other) const
 {
-    return m_value == other.m_value
+    return m_value == other.m_value;
 }
 
 template <typename T>
