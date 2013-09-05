@@ -237,6 +237,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\lib\constantvalueiterator.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\constantvalueiterator.inl"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lib\dct.h"
 				>
 			</File>
@@ -246,6 +254,14 @@
 			</File>
 			<File
 				RelativePath=".\src\lib\encoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\findaverage.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\findaverage.inl"
 				>
 			</File>
 			<File

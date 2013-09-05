@@ -9,7 +9,9 @@
 #include <algorithm>
 #include <exception>
 #include "bytearrayserializer.h"
+#include "constantvalueiterator.h"
 #include "dct.h"
+#include "findaverage.h"
 #include "frame.h"
 #include "normalize.h"
 #include "precompressor.h"
@@ -83,6 +85,7 @@ int decode(int argc, char *argv[])
         Precompressor precompressor;
         Quantization quantization(flat, quality);
         DCT dct;
+        FindAverage findAverage;
         Predictor predictor;
         Normalize normalize;
         if(!silent)
@@ -133,6 +136,21 @@ int decode(int argc, char *argv[])
                 quantization.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.verticalBegin(block), current.verticalBegin(block + 4));
+                if(block != 0 && (((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0) ==
+                                  ((macroblockIsInter[((block - 4) / 4) / 8] & (1 << (((block - 4) / 4) % 8))) != 0)))
+                {
+                    predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           makeConstantValueIterator(findAverage(current.horizontalBegin(block - 4),
+                                                                                 current.horizontalBegin(block))));
+                }
+                else
+                {
+                    if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) == 0)
+                    {
+                        predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                               makeConstantValueIterator(128));
+                    }
+                }
                 if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
                 {
                     predictor.applyReverse(current.regionBegin(currentX, currentY, 16, 16),

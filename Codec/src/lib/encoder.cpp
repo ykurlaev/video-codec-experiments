@@ -10,7 +10,9 @@
 #include <algorithm>
 #include <exception>
 #include "bytearrayserializer.h"
+#include "constantvalueiterator.h"
 #include "dct.h"
+#include "findaverage.h"
 #include "findsad.h"
 #include "frame.h"
 #include "motionestimator.h"
@@ -98,6 +100,7 @@ int encode(int argc, char *argv[])
         vector<uint8_t> precompressedMeta((macroblockIsInter.size() + motionVectorsX.size()
                                            + motionVectorsY.size()) * Precompressor::MAX_BYTES);
         vector<uint8_t> compressedMeta(precompressedMeta.size());
+        FindAverage findAverage;
         MotionEstimator motionEstimator;
         Predictor predictor;
         DCT dct;
@@ -153,6 +156,21 @@ int encode(int argc, char *argv[])
                     motionVectorsX[block / 4] = 0;
                     motionVectorsY[block / 4] = 0;
                 }
+                if(block != 0 && (((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0) ==
+                                  ((macroblockIsInter[((block - 4) / 4) / 8] & (1 << (((block - 4) / 4) % 8))) != 0)))
+                {
+                    predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           makeConstantValueIterator(findAverage(current.horizontalBegin(block - 4),
+                                                                                 current.horizontalBegin(block))));
+                }
+                else
+                {
+                    if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) == 0)
+                    {
+                        predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                               makeConstantValueIterator(128));
+                    }
+                }
                 dct.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyForward(current.verticalBegin(block), current.verticalBegin(block + 4));
                 quantization.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4));
@@ -162,6 +180,21 @@ int encode(int argc, char *argv[])
                 quantization.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.verticalBegin(block), current.verticalBegin(block + 4));
+                if(block != 0 && (((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0) ==
+                                  ((macroblockIsInter[((block - 4) / 4) / 8] & (1 << (((block - 4) / 4) % 8))) != 0)))
+                {
+                    predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           makeConstantValueIterator(findAverage(current.horizontalBegin(block - 4),
+                                                                                 current.horizontalBegin(block))));
+                }
+                else
+                {
+                    if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) == 0)
+                    {
+                        predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                               makeConstantValueIterator(128));
+                    }
+                }
                 if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
                 {
                     predictor.applyReverse(current.regionBegin(currentX, currentY, 16, 16),
