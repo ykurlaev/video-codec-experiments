@@ -118,12 +118,8 @@ int decode(int argc, char *argv[])
                 quantization.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.verticalBegin(block), current.verticalBegin(block + 4));
-                if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
-                {
-                    predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
-                                           previous.horizontalBegin(block));
-                }
-                if(block != 0)
+                if(block != 0 && (((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0) ==
+                                  ((macroblockIsInter[((block - 4) / 4) / 8] & (1 << (((block - 4) / 4) % 8))) != 0)))
                 {
                     predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
                                            makeConstantValueIterator(findAverage(current.horizontalBegin(block - 4),
@@ -131,8 +127,16 @@ int decode(int argc, char *argv[])
                 }
                 else
                 {
+                    if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) == 0)
+                    {
+                        predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                               makeConstantValueIterator(128));
+                    }
+                }
+                if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
+                {
                     predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
-                                           makeConstantValueIterator(128));
+                                           previous.horizontalBegin(block));
                 }
             }
             normalize(current.horizontalBegin(), current.horizontalEnd());

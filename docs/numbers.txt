@@ -5,7 +5,7 @@ long,non-flat    13095730  31.91(16.01)
 long,flat         6645156  31.91(16.08)
 
 <new>               size    a(w) psnr
-short,non-flat    2336045  23.22(18.25)
-short,flat        1196410  21.02(15.72)
-long,non-flat    18095941  33.31(18.26)
-long,flat         9677490  31.91(16.01)
+short,non-flat    2128583  23.24(18.04)
+short,flat        1156865  21.07(15.74)
+long,non-flat    14107909  32.09(18.42)
+long,flat         7385694  32.09(16.17)

@@ -128,17 +128,6 @@ int encode(int argc, char *argv[])
             for(Frame<>::coord_t block = 0; block < (current.getAlignedWidth() * current.getAlignedHeight())
                                                     / (8 * 8); block += 4)
             {
-                if(block != 0)
-                {
-                    predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
-                                           makeConstantValueIterator(findAverage(current.horizontalBegin(block - 4),
-                                                                                 current.horizontalBegin(block))));
-                }
-                else
-                {
-                    predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
-                                           makeConstantValueIterator(128));
-                }
                 if(findSAD(current.horizontalBegin(block), current.horizontalBegin(block + 4),
                            previous.horizontalBegin(block)) < 10 * 16 * 16)
                 {
@@ -150,6 +139,21 @@ int encode(int argc, char *argv[])
                 {
                     macroblockIsInter[(block / 4) / 8] &= ~(1 << ((block / 4) % 8));
                 }
+                if(block != 0 && (((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0) ==
+                                  ((macroblockIsInter[((block - 4) / 4) / 8] & (1 << (((block - 4) / 4) % 8))) != 0)))
+                {
+                    predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                           makeConstantValueIterator(findAverage(current.horizontalBegin(block - 4),
+                                                                                 current.horizontalBegin(block))));
+                }
+                else
+                {
+                    if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) == 0)
+                    {
+                        predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                               makeConstantValueIterator(128));
+                    }
+                }
                 dct.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyForward(current.verticalBegin(block), current.verticalBegin(block + 4));
                 quantization.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4));
@@ -159,12 +163,8 @@ int encode(int argc, char *argv[])
                 quantization.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 dct.applyReverse(current.verticalBegin(block), current.verticalBegin(block + 4));
-                if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
-                {
-                    predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
-                                           previous.horizontalBegin(block));
-                }
-                if(block != 0)
+                if(block != 0 && (((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0) ==
+                                  ((macroblockIsInter[((block - 4) / 4) / 8] & (1 << (((block - 4) / 4) % 8))) != 0)))
                 {
                     predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
                                            makeConstantValueIterator(findAverage(current.horizontalBegin(block - 4),
@@ -172,8 +172,16 @@ int encode(int argc, char *argv[])
                 }
                 else
                 {
+                    if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) == 0)
+                    {
+                        predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                                               makeConstantValueIterator(128));
+                    }
+                }
+                if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
+                {
                     predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
-                                           makeConstantValueIterator(128));
+                                           previous.horizontalBegin(block));
                 }
                 //###
             }
