@@ -8,7 +8,7 @@
 namespace Codec
 {
 
-template <uint32_t MIN_N = 0, uint32_t MAX_N = 0>
+template <uint32_t MIN_N = 0, uint32_t MAX_N = MIN_N>
 class Frame
 {
     private:

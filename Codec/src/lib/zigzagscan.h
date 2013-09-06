@@ -7,16 +7,16 @@
 namespace Codec
 {
 
-template <size_t N>
+template <size_t MIN_N, size_t MAX_N = MIN_N>
 class ZigZagScan
 {
     public:
-        static const typename Frame<N>::coord_t *getScan();
+        static const typename Frame<>::coord_t *getScan();
     private:
         ZigZagScan();
         ZigZagScan(const ZigZagScan &);
         void operator=(const ZigZagScan &);
-        typename Frame<N>::coord_t m_scan[N * N];
+        typename Frame<>::coord_t m_scan[MAX_N * MAX_N];
 };
 
 }
