@@ -108,11 +108,6 @@ int decode(int argc, char *argv[])
             {
                 break;
             }
-            zlibDecompress(&compressedMeta[0], &precompressedMeta[0], compressedMetaSize, precompressedMeta.size());
-            precompressor.setByteArray(&precompressedMeta[0]);
-            precompressor.applyReverse(&macroblockIsInter[0], &macroblockIsInter[0] + macroblockIsInter.size());
-            precompressor.applyReverse(&motionVectorsX[0], &motionVectorsX[0] + motionVectorsX.size());
-            precompressor.applyReverse(&motionVectorsY[0], &motionVectorsY[0] + motionVectorsY.size());
             uint32_t compressedSize = byteArraySerializer.deserializeByteArray(in, &compressed[0], compressed.size());
             if(compressedSize == 0)
             {
@@ -122,7 +117,12 @@ int decode(int argc, char *argv[])
             {
                 cerr << count << " ";
             }
+            zlibDecompress(&compressedMeta[0], &precompressedMeta[0], compressedMetaSize, precompressedMeta.size());
             zlibDecompress(&compressed[0], &precompressed[0], compressedSize, precompressed.size());
+            precompressor.setByteArray(&precompressedMeta[0]);
+            precompressor.applyReverse(&macroblockIsInter[0], &macroblockIsInter[0] + macroblockIsInter.size());
+            precompressor.applyReverse(&motionVectorsX[0], &motionVectorsX[0] + motionVectorsX.size());
+            precompressor.applyReverse(&motionVectorsY[0], &motionVectorsY[0] + motionVectorsY.size());
             swap(previous, current);
             precompressor.setByteArray(&precompressed[0]);
             Frame<>::data_t prevBlockAverage = 128;

@@ -212,9 +212,9 @@ int encode(int argc, char *argv[])
             precompressor.applyForward(&motionVectorsY[0], &motionVectorsY[0] + motionVectorsY.size());
             uint32_t compressedMetaSize = zlibCompress(&precompressedMeta[0], &compressedMeta[0],
                                                        precompressor.getBytesProcessed(), compressedMeta.size());
-            byteArraySerializer.serializeByteArray(&compressedMeta[0], compressedMetaSize, out);
             uint32_t compressedSize = zlibCompress(&precompressed[0], &compressed[0],
                                                    precompressedSize, compressed.size());
+            byteArraySerializer.serializeByteArray(&compressedMeta[0], compressedMetaSize, out);
             byteArraySerializer.serializeByteArray(&compressed[0], compressedSize, out);
         }
         if(!silent)

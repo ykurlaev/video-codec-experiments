@@ -179,6 +179,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\lib\constantvalueiterator.inl"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lib\dct.inl"
 				>
 			</File>
@@ -188,6 +192,14 @@
 			</File>
 			<File
 				RelativePath=".\src\lib\encoder.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\findaverage.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\findsad.inl"
 				>
 			</File>
 			<File
@@ -241,10 +253,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\constantvalueiterator.inl"
-				>
-			</File>
-			<File
 				RelativePath=".\src\lib\dct.h"
 				>
 			</File>
@@ -261,15 +269,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\findaverage.inl"
-				>
-			</File>
-			<File
 				RelativePath=".\src\lib\findsad.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\lib\findsad.inl"
 				>
 			</File>
 			<File
