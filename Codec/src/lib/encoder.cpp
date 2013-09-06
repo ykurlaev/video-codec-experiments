@@ -131,6 +131,7 @@ int encode(int argc, char *argv[])
             }
             current.fromByteArray(&uncompressed[0]);
             precompressor.setByteArray(&precompressed[0]);
+            Frame<>::data_t prevBlockAverage = 128;
             for(Frame<>::coord_t block = 0; block < (current.getAlignedWidth() * current.getAlignedHeight())
                                                     / (8 * 8); block += 4)
             {
@@ -140,7 +141,6 @@ int encode(int argc, char *argv[])
                                  currentY = ((block / 4) / macroblockWidth) * 16;
                 motionEstimator(current, previous, block, &motionVectorsX[block / 4],
                                 &motionVectorsY[block / 4], &sad);
-
                 if(sad < 10 * 16 * 16)
                 {
                     macroblockIsInter[(block / 4) / 8] |= (1 << ((block / 4) % 8));
@@ -160,8 +160,7 @@ int encode(int argc, char *argv[])
                                   ((macroblockIsInter[((block - 4) / 4) / 8] & (1 << (((block - 4) / 4) % 8))) != 0)))
                 {
                     predictor.applyForward(current.horizontalBegin(block), current.horizontalBegin(block + 4),
-                                           makeConstantValueIterator(findAverage(current.horizontalBegin(block - 4),
-                                                                                 current.horizontalBegin(block))));
+                                           makeConstantValueIterator(prevBlockAverage));
                 }
                 else
                 {
@@ -184,8 +183,7 @@ int encode(int argc, char *argv[])
                                   ((macroblockIsInter[((block - 4) / 4) / 8] & (1 << (((block - 4) / 4) % 8))) != 0)))
                 {
                     predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
-                                           makeConstantValueIterator(findAverage(current.horizontalBegin(block - 4),
-                                                                                 current.horizontalBegin(block))));
+                                           makeConstantValueIterator(prevBlockAverage));
                 }
                 else
                 {
@@ -195,6 +193,7 @@ int encode(int argc, char *argv[])
                                                makeConstantValueIterator(128));
                     }
                 }
+                prevBlockAverage = findAverage(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
                 {
                     predictor.applyReverse(current.regionBegin(currentX, currentY, 16, 16),

@@ -125,6 +125,7 @@ int decode(int argc, char *argv[])
             zlibDecompress(&compressed[0], &precompressed[0], compressedSize, precompressed.size());
             swap(previous, current);
             precompressor.setByteArray(&precompressed[0]);
+            Frame<>::data_t prevBlockAverage = 128;
             for(Frame<>::coord_t block = 0; block < (current.getAlignedWidth() * current.getAlignedHeight())
                                                     / (8 * 8); block += 4)
             {
@@ -140,8 +141,7 @@ int decode(int argc, char *argv[])
                                   ((macroblockIsInter[((block - 4) / 4) / 8] & (1 << (((block - 4) / 4) % 8))) != 0)))
                 {
                     predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
-                                           makeConstantValueIterator(findAverage(current.horizontalBegin(block - 4),
-                                                                                 current.horizontalBegin(block))));
+                                           makeConstantValueIterator(prevBlockAverage));
                 }
                 else
                 {
@@ -151,6 +151,7 @@ int decode(int argc, char *argv[])
                                                makeConstantValueIterator(128));
                     }
                 }
+                prevBlockAverage = findAverage(current.horizontalBegin(block), current.horizontalBegin(block + 4));
                 if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
                 {
                     predictor.applyReverse(current.regionBegin(currentX, currentY, 16, 16),
