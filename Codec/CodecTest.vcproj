@@ -201,7 +201,23 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\test\dcttest.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\test\frametest.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test\main.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\test\test.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\test\zigzagscantest.cpp"
 				>
 			</File>
 		</Filter>
@@ -210,6 +226,22 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\test\dcttest.h"
+				>
+			</File>
+			<File
+				RelativePath=".\test\frametest.h"
+				>
+			</File>
+			<File
+				RelativePath=".\test\test.h"
+				>
+			</File>
+			<File
+				RelativePath=".\test\zigzagscantest.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
