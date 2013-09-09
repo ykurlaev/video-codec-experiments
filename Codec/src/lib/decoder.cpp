@@ -65,12 +65,12 @@ int decode(int argc, char *argv[])
         byteArraySerializer.deserializeUint32(in, uheight);
         byteArraySerializer.deserializeUint32(in, uquality);
         byteArraySerializer.deserializeUint32(in, uflat);
-        Frame<8>::coord_t width = static_cast<Frame<8>::coord_t>(uwidth);
-        Frame<8>::coord_t height = static_cast<Frame<8>::coord_t>(uheight);
+        Frame<>::coord_t width = static_cast<Frame<8>::coord_t>(uwidth);
+        Frame<>::coord_t height = static_cast<Frame<8>::coord_t>(uheight);
         uint8_t quality = uquality & 0xFF;
         bool flat = uflat != 0;
-        Frame<8, 16> current(width, height);
-        Frame<8, 16> previous(width, height);
+        Frame<16> current(width, height);
+        Frame<16> previous(width, height);
         vector<uint8_t> uncompressed(current.getWidth() * current.getHeight());
         vector<uint8_t> precompressed(current.getAlignedWidth() * current.getAlignedHeight() * Precompressor::MAX_BYTES);
         vector<uint8_t> compressed(precompressed.size());
@@ -81,7 +81,7 @@ int decode(int argc, char *argv[])
                                            + motionVectorsY.size()) * Precompressor::MAX_BYTES);
         vector<uint8_t> compressedMeta(precompressedMeta.size());
         ZlibDecompress zlibDecompress;
-        const Frame<>::coord_t *zigZagScan = ZigZagScan<8>::getScan();
+        const Frame<>::coord_t *zigZagScan = ZigZagScan<8, 16>::getScan();
         Precompressor precompressor;
         Quantization quantization(flat, quality);
         DCT dct;
@@ -125,39 +125,46 @@ int decode(int argc, char *argv[])
             precompressor.applyReverse(&motionVectorsY[0], &motionVectorsY[0] + motionVectorsY.size());
             swap(previous, current);
             precompressor.setByteArray(&precompressed[0]);
-            Frame<>::data_t prevBlockAverage = 128;
-            for(Frame<>::coord_t block = 0; block < (current.getAlignedWidth() * current.getAlignedHeight())
-                                                    / (8 * 8); block += 4)
+            Frame<>::coord_t macroblockWidth = current.getAlignedWidth() / 16;
+            Frame<>::data_t prevMacroblockAverage = 128;
+            for(Frame<>::coord_t macroblock = 0;
+                macroblock < (current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16);
+                macroblock++)
             {
-                Frame<>::coord_t macroblockWidth = current.getAlignedWidth() / 16;
-                Frame<>::coord_t currentX = ((block / 4) % macroblockWidth) * 16,
-                                 currentY = ((block / 4) / macroblockWidth) * 16;
-                precompressor.applyReverse(current.scanningBegin(zigZagScan, block),
-                                           current.scanningBegin(zigZagScan, block + 4));
-                quantization.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
-                dct.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4));
-                dct.applyReverse(current.verticalBegin(block), current.verticalBegin(block + 4));
-                if(block != 0 && (((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0) ==
-                                  ((macroblockIsInter[((block - 4) / 4) / 8] & (1 << (((block - 4) / 4) % 8))) != 0)))
+                Frame<>::coord_t currentX = (macroblock % macroblockWidth) * 16,
+                                 currentY = (macroblock / macroblockWidth) * 16;
+                precompressor.applyReverse(current.scanningBegin(zigZagScan, macroblock),
+                                           current.scanningBegin(zigZagScan, macroblock + 1));
+                quantization.applyReverse(current.horizontalBegin(macroblock),
+                                          current.horizontalBegin(macroblock + 1));
+                dct.applyReverse(current.horizontalBegin(macroblock),
+                                 current.horizontalBegin(macroblock + 1));
+                dct.applyReverse(current.verticalBegin(macroblock), current.verticalBegin(macroblock + 1));
+                if(macroblock != 0 &&
+                   (((macroblockIsInter[macroblock / 8] & (1 << (macroblock % 8))) != 0) ==
+                    ((macroblockIsInter[(macroblock - 1) / 8] & (1 << ((macroblock - 1) % 8))) != 0)))
                 {
-                    predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
-                                           makeConstantValueIterator(prevBlockAverage));
+                    predictor.applyReverse(current.horizontalBegin(macroblock),
+                                           current.horizontalBegin(macroblock + 1),
+                                           makeConstantValueIterator(prevMacroblockAverage));
                 }
                 else
                 {
-                    if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) == 0)
+                    if((macroblockIsInter[macroblock / 8] & (1 << (macroblock % 8))) == 0)
                     {
-                        predictor.applyReverse(current.horizontalBegin(block), current.horizontalBegin(block + 4),
+                        predictor.applyReverse(current.horizontalBegin(macroblock),
+                                               current.horizontalBegin(macroblock + 1),
                                                makeConstantValueIterator(128));
                     }
                 }
-                prevBlockAverage = findAverage(current.horizontalBegin(block), current.horizontalBegin(block + 4));
-                if((macroblockIsInter[(block / 4) / 8] & (1 << ((block / 4) % 8))) != 0)
+                prevMacroblockAverage = findAverage(current.horizontalBegin(macroblock),
+                                                    current.horizontalBegin(macroblock + 1));
+                if((macroblockIsInter[macroblock / 8] & (1 << (macroblock % 8))) != 0)
                 {
-                    predictor.applyReverse(current.regionBegin(currentX, currentY, 16, 16),
-                                           current.regionEnd(),
-                                           previous.regionBegin(currentX + motionVectorsX[block / 4],
-                                                                currentY + motionVectorsY[block / 4],
+                    predictor.applyReverse(current.horizontalBegin(macroblock),
+                                           current.horizontalBegin(macroblock + 1),
+                                           previous.regionBegin(currentX + motionVectorsX[macroblock],
+                                                                currentY + motionVectorsY[macroblock],
                                                                 16, 16));
                 }
             }

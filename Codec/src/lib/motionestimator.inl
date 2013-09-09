@@ -7,13 +7,12 @@ namespace Codec
 
 template <uint32_t MIN_N, uint32_t MAX_N>
 inline void MotionEstimator::operator()(Frame<MIN_N, MAX_N> &current, Frame<MIN_N, MAX_N> &previous,
-                                        MotionEstimator::coord_t block, int8_t *x, int8_t *y, uint32_t *sad)
+                                        MotionEstimator::coord_t macroblock, int8_t *x, int8_t *y, uint32_t *sad)
 {
-    coord_t blocksInMacro = (MAX_N / MIN_N) * (MAX_N / MIN_N);
     coord_t macroblockWidth = current.getAlignedWidth() / MAX_N;
     coord_t macroblockHeight = current.getAlignedHeight() / MAX_N;
-    coord_t macroblockX = (block / blocksInMacro) % macroblockWidth,
-            macroblockY = (block / blocksInMacro) / macroblockWidth;
+    coord_t macroblockX = macroblock % macroblockWidth,
+            macroblockY = macroblock / macroblockWidth;
     //bool hasNeighbor[9] =
     //    { macroblockX > 0 && macroblockY > 0, macroblockY > 0,
     //          macroblockX < macroblockWidth - 1 && macroblockY > 0,
@@ -44,11 +43,11 @@ inline void MotionEstimator::operator()(Frame<MIN_N, MAX_N> &current, Frame<MIN_
     //         prevY = ((prevBlock / blocksInMacro) / macroblockWidth) * MAX_N;
     //uint32_t prevSad = *sadptr, newSad = prevSad;
     FindSAD findSAD;
-    uint32_t prevSad = findSAD(current.horizontalBegin(block), current.horizontalBegin(block + blocksInMacro),
-                               previous.horizontalBegin(block));
+    uint32_t prevSad = findSAD(current.horizontalBegin(macroblock), current.horizontalBegin(macroblock + 1),
+                               previous.horizontalBegin(macroblock));
     uint32_t newSad = prevSad;
-    scoord_t prevX = ((block / blocksInMacro) % macroblockWidth) * MAX_N,
-             prevY = ((block / blocksInMacro) / macroblockWidth) * MAX_N;
+    scoord_t prevX = (macroblock % macroblockWidth) * MAX_N,
+             prevY = (macroblock / macroblockWidth) * MAX_N;
     do
     {
         prevX++;
@@ -58,8 +57,7 @@ inline void MotionEstimator::operator()(Frame<MIN_N, MAX_N> &current, Frame<MIN_
             break;
         }
         prevSad = newSad;
-        newSad = findSAD(current.regionBegin(macroblockX * MAX_N, macroblockY * MAX_N, MAX_N, MAX_N),
-                         current.regionEnd(),
+        newSad = findSAD(current.horizontalBegin(macroblock), current.horizontalBegin(macroblock + 1),
                          previous.regionBegin(prevX, prevY, MAX_N, MAX_N));
     }
     while(newSad < prevSad);
@@ -73,8 +71,7 @@ inline void MotionEstimator::operator()(Frame<MIN_N, MAX_N> &current, Frame<MIN_
             break;
         }
         prevSad = newSad;
-        newSad = findSAD(current.regionBegin(macroblockX * MAX_N, macroblockY * MAX_N, MAX_N, MAX_N),
-                         current.regionEnd(),
+        newSad = findSAD(current.horizontalBegin(macroblock), current.horizontalBegin(macroblock + 1),
                          previous.regionBegin(prevX, prevY, MAX_N, MAX_N));
     }
     while(newSad < prevSad);
@@ -89,8 +86,7 @@ inline void MotionEstimator::operator()(Frame<MIN_N, MAX_N> &current, Frame<MIN_
             break;
         }
         prevSad = newSad;
-        newSad = findSAD(current.regionBegin(macroblockX * MAX_N, macroblockY * MAX_N, MAX_N, MAX_N),
-                         current.regionEnd(),
+        newSad = findSAD(current.horizontalBegin(macroblock), current.horizontalBegin(macroblock + 1),
                          previous.regionBegin(prevX, prevY, MAX_N, MAX_N));
     }
     while(newSad < prevSad);
@@ -104,8 +100,7 @@ inline void MotionEstimator::operator()(Frame<MIN_N, MAX_N> &current, Frame<MIN_
             break;
         }
         prevSad = newSad;
-        newSad = findSAD(current.regionBegin(macroblockX * MAX_N, macroblockY * MAX_N, MAX_N, MAX_N),
-                         current.regionEnd(),
+        newSad = findSAD(current.horizontalBegin(macroblock), current.horizontalBegin(macroblock + 1),
                          previous.regionBegin(prevX, prevY, MAX_N, MAX_N));
     }
     while(newSad < prevSad);

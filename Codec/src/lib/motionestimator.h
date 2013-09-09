@@ -14,7 +14,7 @@ class MotionEstimator
         typedef MakeSigned<coord_t>::t scoord_t;
     public:
         template <uint32_t MIN_N, uint32_t MAX_N>
-        void operator()(Frame<MIN_N, MAX_N> &current, Frame<MIN_N, MAX_N> &previous, coord_t block,
+        void operator()(Frame<MIN_N, MAX_N> &current, Frame<MIN_N, MAX_N> &previous, coord_t macroblock,
                         int8_t *x, int8_t *y, uint32_t *sad);
 };
 

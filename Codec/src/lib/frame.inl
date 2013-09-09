@@ -12,7 +12,7 @@ inline Frame<MIN_N, MAX_N>::Frame(coord_t width, coord_t height)
       m_alignedHeight(((height + MAX_N - 1) / MAX_N) * MAX_N),
       m_data(m_alignedWidth * m_alignedHeight), m_ptrs(m_alignedWidth * m_alignedHeight)
 {
-    assert(MIN_N != 0 && MAX_N > MIN_N);
+    assert(MIN_N != 0 && MAX_N >= MIN_N);
     coord_t blockX = 0, blockY = 0, i = 0;
     for(int *ptr = &m_data[0]; ptr != &m_data[0] + m_data.size(); ptr++)
     {
