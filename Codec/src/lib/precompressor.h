@@ -21,15 +21,6 @@ class Precompressor
     private:
         uint8_t *m_byteArray;
         size_t m_bytesProcessed;
-        template <typename Iterator>
-        void applyForward16Signed(Iterator begin, Iterator end);
-        template <typename Iterator>
-        void applyReverse16Signed(Iterator begin, Iterator end);
-        template <typename Iterator>
-        void applyForward8Unsigned(Iterator begin, Iterator end);
-        template <typename Iterator>
-        void applyReverse8Unsigned(Iterator begin, Iterator end);
-
 };
 
 }

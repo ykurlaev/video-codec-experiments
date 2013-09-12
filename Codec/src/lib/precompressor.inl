@@ -1,3 +1,4 @@
+#include <iterator>
 #include <stdexcept>
 
 namespace Codec
@@ -21,42 +22,6 @@ inline size_t Precompressor::getBytesProcessed() const
 template <typename Iterator>
 inline void Precompressor::applyForward(Iterator begin, Iterator end)
 {
-    typedef typename std::iterator_traits<Iterator>::value_type value_type;
-    if((void)0, sizeof(value_type) > 1) //(void)0 makes MSVS happy
-    {
-        applyForward16Signed(begin, end);
-    }
-    else if((void) 0, sizeof(value_type) == 1)
-    {
-        applyForward8Unsigned(begin, end);
-    }
-    else
-    {
-        throw std::logic_error("Invalid datatype for precompressing");
-    }
-}
-
-template <typename Iterator>
-inline void Precompressor::applyReverse(Iterator begin, Iterator end)
-{
-    typedef typename std::iterator_traits<Iterator>::value_type value_type;
-    if((void)0, sizeof(value_type) > 1)
-    {
-        applyReverse16Signed(begin, end);
-    }
-    else if((void) 0, sizeof(value_type) == 1)
-    {
-        applyReverse8Unsigned(begin, end);
-    }
-    else
-    {
-        throw std::logic_error("invalid datatype for precompressing");
-    }
-}
-
-template <typename Iterator>
-inline void Precompressor::applyForward16Signed(Iterator begin, Iterator end)
-{
     if(m_byteArray == NULL)
     {
         return;
@@ -65,101 +30,17 @@ inline void Precompressor::applyForward16Signed(Iterator begin, Iterator end)
     uint8_t zeros = 0;
     for(; begin != end; ++begin)
     {
-        uint16_t u = static_cast<uint16_t>(*begin & 0xFFFF);
-        uint8_t lsb = u & 0xFF;
-        uint8_t msb = (u >> 8) & 0xFF;
-        if(msb == 0 && lsb == 0)
+        typedef typename std::iterator_traits<Iterator>::value_type value_type;
+        typedef typename MakeUnsigned<value_type>::t u_value_type;
+        u_value_type uValue = static_cast<u_value_type>(*begin);
+        uint8_t bytes[sizeof(u_value_type)];
+        for(size_t b = 0; b < sizeof(u_value_type); b++)
         {
-            if(zeros == 0x3F)
-            {
-                *m_byteArray++ = 0xC0 | zeros;
-                zeros = 0;
-            }
-            zeros++;
+            bytes[b] = static_cast<uint8_t>((uValue >> ((sizeof(bytes) - 1 - b) * 8)) & 0xFF);
         }
-        else
+        if(uValue == 0)
         {
-            if(zeros != 0)
-            {
-                *m_byteArray++ = 0xC0 | zeros;
-                zeros = 0;
-            }
-            bool sign = msb >> 7 == 1;
-            if(msb == (sign ? ~0 : 0) && lsb >> 6 == (sign ? 0x3 : 0))
-            {
-                *m_byteArray++ = lsb & 0x7F;
-            }
-            else
-            {
-                *m_byteArray++ = (msb & 0x3F) | 0x80;
-                *m_byteArray++ = lsb;
-            }
-        }
-    }
-    if(zeros != 0)
-    {
-        *m_byteArray++ = 0xC0 | zeros;
-    }
-    m_bytesProcessed += m_byteArray - byteArrayOriginal;
-}
-
-template <typename Iterator>
-inline void Precompressor::applyReverse16Signed(Iterator begin, Iterator end)
-{
-    if(m_byteArray == NULL)
-    {
-        return;
-    }
-    uint8_t *byteArrayOriginal = m_byteArray;
-    while(begin != end)
-    {
-        if(*m_byteArray >> 6 == 0x3)
-        {
-            uint8_t zeros = *m_byteArray++ & 0x3F;
-            for(uint8_t j = 0; j < zeros && begin != end; j++)
-            {
-                *begin = 0;
-                ++begin;
-            }
-        }
-        else
-        {
-            uint8_t msb;
-            uint8_t lsb;
-            if(*m_byteArray >> 7 == 0)
-            {
-                uint8_t sign = (*m_byteArray >> 6 == 1) ? ~0 : 0;
-                msb = sign;
-                lsb = (*m_byteArray++ & 0x7F) | (sign & 0x80);
-            }
-            else
-            {
-                msb = (*m_byteArray & 0x3F) | (((*m_byteArray & 0x20) == 0) ? 0 : 0xC0);
-                m_byteArray++;
-                lsb = *m_byteArray++;
-            }
-            *begin = static_cast<int16_t>(msb << 8 | lsb);
-            ++begin;
-        }
-    }
-    m_bytesProcessed += m_byteArray - byteArrayOriginal;
-}
-
-template <typename Iterator>
-inline void Precompressor::applyForward8Unsigned(Iterator begin, Iterator end)
-{
-    if(m_byteArray == NULL)
-    {
-        return;
-    }
-    uint8_t *byteArrayOriginal = m_byteArray;
-    uint8_t zeros = 0;
-    for(; begin != end; ++begin)
-    {
-        uint8_t u = static_cast<uint8_t>(*begin);
-        if(u == 0)
-        {
-            if(zeros == 0xFE)
+            if(zeros == 0xFF)
             {
                 *m_byteArray++ = 0;
                 *m_byteArray++ = zeros;
@@ -175,7 +56,45 @@ inline void Precompressor::applyForward8Unsigned(Iterator begin, Iterator end)
                 *m_byteArray++ = zeros;
                 zeros = 0;
             }
-            *m_byteArray++ = u;
+            if((void)0, sizeof(u_value_type) == 1)
+            {
+                *m_byteArray++ = static_cast<uint8_t>(uValue);
+            }
+            else
+            {
+                uint8_t sign = bytes[0] >> 7 != 0 ? 0xFF : 0;
+                size_t byteCount = sizeof(u_value_type) + 1;
+                for(size_t b = 0; b < sizeof(u_value_type); b++)
+                {
+                    uint8_t f = (b != 0) ? bytes[b - 1] : sign;
+                    uint8_t s = bytes[b];
+                    uint8_t u = ((f << (sizeof(u_value_type) - b + 1)) |
+                                 (s >> (8 - (sizeof(u_value_type) - b + 1)))) & 0xFF;
+                    if(u != sign)
+                    //if((bytes[b] >> (sizeof(u_value_type) - b))
+                    //   != (sign >> (sizeof(u_value_type) - b)))
+                    {
+                        break;
+                    }
+                    byteCount--;
+                }
+                size_t b = 0;
+                if(byteCount > sizeof(u_value_type))
+                {
+                    *m_byteArray++ = ((0x00FF >> (9 - byteCount)) << (9 - byteCount)) |
+                                     (sign & (0x00FF >> byteCount));
+                }
+                else
+                {
+                    *m_byteArray++ = ((0x00FF >> (9 - byteCount)) << (9 - byteCount)) |
+                                     (bytes[sizeof(u_value_type) - byteCount] & (0x00FF >> byteCount));
+                    b++;
+                }
+                for(; b < byteCount; b++)
+                {
+                    *m_byteArray++ = bytes[sizeof(u_value_type) - byteCount + b];
+                }
+            }
         }
     }
     if(zeros != 0)
@@ -187,7 +106,7 @@ inline void Precompressor::applyForward8Unsigned(Iterator begin, Iterator end)
 }
 
 template <typename Iterator>
-inline void Precompressor::applyReverse8Unsigned(Iterator begin, Iterator end)
+inline void Precompressor::applyReverse(Iterator begin, Iterator end)
 {
     if(m_byteArray == NULL)
     {
@@ -196,11 +115,13 @@ inline void Precompressor::applyReverse8Unsigned(Iterator begin, Iterator end)
     uint8_t *byteArrayOriginal = m_byteArray;
     while(begin != end)
     {
-        uint8_t u = *m_byteArray++;
-        if(u == 0)
+        typedef typename std::iterator_traits<Iterator>::value_type value_type;
+        typedef typename MakeUnsigned<value_type>::t u_value_type;
+        if(*m_byteArray == 0)
         {
+            m_byteArray++;
             uint8_t zeros = *m_byteArray++;
-            for(uint8_t j = 0; j < zeros && begin != end; j++)
+            for(uint8_t i = 0; i < zeros && begin != end; i++)
             {
                 *begin = 0;
                 ++begin;
@@ -208,7 +129,45 @@ inline void Precompressor::applyReverse8Unsigned(Iterator begin, Iterator end)
         }
         else
         {
-            *begin = u;
+            if((void)0, sizeof(u_value_type) == 1)
+            {
+                *begin = *m_byteArray++;
+            }
+            else
+            {
+                uint8_t bytes[sizeof(u_value_type)];
+                uint8_t firstByte = *m_byteArray++;
+                size_t byteCount = 1;
+                for(; ; byteCount++)
+                {
+                    if(((firstByte >> (8 - byteCount)) & 0x01) == 0)
+                    {
+                        break;
+                    }
+                }
+                uint8_t sign = (((firstByte >> (8 - byteCount - 1)) & 0x01) == 1) ? 0xFF : 0;
+                for(size_t b = 0; b < sizeof(u_value_type) - byteCount; b++)
+                {
+                    bytes[b] = sign;
+                }
+                size_t b = 0;
+                if(byteCount <= sizeof(u_value_type))
+                {
+                    bytes[sizeof(u_value_type) - byteCount] = ((sign >> (8 - byteCount)) << (8 - byteCount))
+                                                              | (firstByte & (0x00FF >> byteCount));
+                    b++;
+                }
+                for(; b < byteCount; b++)
+                {
+                    bytes[sizeof(u_value_type) - byteCount + b] = *m_byteArray++;
+                }
+                u_value_type uValue = 0;
+                for(size_t b = 0; b < sizeof(u_value_type); b++)
+                {
+                    uValue |= bytes[b] << ((sizeof(u_value_type) - 1 - b) * 8);
+                }
+                *begin = static_cast<value_type>(uValue);
+            }
             ++begin;
         }
     }
