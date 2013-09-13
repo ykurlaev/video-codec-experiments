@@ -100,6 +100,7 @@ int encode(int argc, char *argv[])
         vector<uint8_t> precompressedMeta((macroblockIsInter.size() + motionVectorsX.size()
                                            + motionVectorsY.size()) * Precompressor::MAX_BYTES);
         vector<uint8_t> compressedMeta(precompressedMeta.size());
+        FindSAD findSAD;
         FindAverage findAverage;
         MotionEstimator motionEstimator;
         Predictor predictor;
@@ -133,6 +134,12 @@ int encode(int argc, char *argv[])
             precompressor.setByteArray(&precompressed[0]);
             Frame<>::coord_t macroblockWidth = current.getAlignedWidth() / 16;
             Frame<>::data_t prevMacroblockAverage = 128;
+            bool forceI = false;
+            if(findSAD(current.horizontalBegin(), current.horizontalEnd(), previous.horizontalBegin())
+               > 12 * current.getAlignedWidth() * current.getAlignedHeight())
+            {
+                forceI = true;
+            }
             for(Frame<>::coord_t macroblock = 0;
                 macroblock < (current.getAlignedWidth() * current.getAlignedHeight()) / (16 * 16);
                 macroblock++)
@@ -142,7 +149,7 @@ int encode(int argc, char *argv[])
                                  currentY = (macroblock / macroblockWidth) * 16;
                 motionEstimator(current, previous, macroblock, &motionVectorsX[macroblock],
                                 &motionVectorsY[macroblock], &sad);
-                if(sad < 10 * 16 * 16)
+                if(!forceI && sad < 10 * 16 * 16)
                 {
                     macroblockIsInter[macroblock / 8] |= (1 << (macroblock % 8));
                     predictor.applyForward(current.horizontalBegin(macroblock),
