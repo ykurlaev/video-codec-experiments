@@ -46,66 +46,72 @@ inline void MotionEstimator::operator()(Frame<MIN_N, MAX_N> &current, Frame<MIN_
     uint32_t prevSad = findSAD(current.horizontalBegin(macroblock), current.horizontalBegin(macroblock + 1),
                                previous.horizontalBegin(macroblock));
     uint32_t newSad = prevSad;
+    uint32_t origSad = prevSad;
     scoord_t prevX = (macroblock % macroblockWidth) * MAX_N,
              prevY = (macroblock / macroblockWidth) * MAX_N;
     do
     {
-        prevX++;
-        if(static_cast<coord_t>(prevX) + MAX_N >= macroblockWidth * MAX_N
-           || std::abs(static_cast<coord_t>(prevX) - macroblockX * MAX_N) >= 16)
+        origSad = newSad;
+        do
         {
-            break;
+            prevX++;
+            if(static_cast<coord_t>(prevX) + MAX_N >= macroblockWidth * MAX_N
+               || std::abs(static_cast<coord_t>(prevX) - macroblockX * MAX_N) >= 32)
+            {
+                break;
+            }
+            prevSad = newSad;
+            newSad = findSAD(current.horizontalBegin(macroblock), current.horizontalBegin(macroblock + 1),
+                             previous.regionBegin(prevX, prevY, MAX_N, MAX_N));
         }
-        prevSad = newSad;
-        newSad = findSAD(current.horizontalBegin(macroblock), current.horizontalBegin(macroblock + 1),
-                         previous.regionBegin(prevX, prevY, MAX_N, MAX_N));
-    }
-    while(newSad < prevSad);
-    newSad = prevSad;
-    prevX--;
-    do
-    {
+        while(newSad < prevSad);
+        newSad = prevSad;
         prevX--;
-        if(prevX < 0 || std::abs(static_cast<coord_t>(prevX) - macroblockX * MAX_N) >= 16)
+        do
         {
-            break;
+            prevX--;
+            if(prevX < 0 || std::abs(static_cast<coord_t>(prevX) - macroblockX * MAX_N) >= 32)
+            {
+                break;
+            }
+            prevSad = newSad;
+            newSad = findSAD(current.horizontalBegin(macroblock), current.horizontalBegin(macroblock + 1),
+                             previous.regionBegin(prevX, prevY, MAX_N, MAX_N));
         }
-        prevSad = newSad;
-        newSad = findSAD(current.horizontalBegin(macroblock), current.horizontalBegin(macroblock + 1),
-                         previous.regionBegin(prevX, prevY, MAX_N, MAX_N));
-    }
-    while(newSad < prevSad);
-    newSad = prevSad;
-    prevX++;
-    do
-    {
-        prevY++;
-        if(static_cast<coord_t>(prevY) + MAX_N >= macroblockHeight * MAX_N
-           || std::abs(static_cast<coord_t>(prevY) - macroblockX * MAX_N) >= 16)
+        while(newSad < prevSad);
+        newSad = prevSad;
+        prevX++;
+        do
         {
-            break;
+            prevY++;
+            if(static_cast<coord_t>(prevY) + MAX_N >= macroblockHeight * MAX_N
+               || std::abs(static_cast<coord_t>(prevY) - macroblockX * MAX_N) >= 32)
+            {
+                break;
+            }
+            prevSad = newSad;
+            newSad = findSAD(current.horizontalBegin(macroblock), current.horizontalBegin(macroblock + 1),
+                             previous.regionBegin(prevX, prevY, MAX_N, MAX_N));
         }
-        prevSad = newSad;
-        newSad = findSAD(current.horizontalBegin(macroblock), current.horizontalBegin(macroblock + 1),
-                         previous.regionBegin(prevX, prevY, MAX_N, MAX_N));
-    }
-    while(newSad < prevSad);
-    newSad = prevSad;
-    prevY--;
-    do
-    {
+        while(newSad < prevSad);
+        newSad = prevSad;
         prevY--;
-        if(prevY < 0 || std::abs(static_cast<coord_t>(prevY) - macroblockX * MAX_N) >= 16)
+        do
         {
-            break;
+            prevY--;
+            if(prevY < 0 || std::abs(static_cast<coord_t>(prevY) - macroblockX * MAX_N) >= 32)
+            {
+                break;
+            }
+            prevSad = newSad;
+            newSad = findSAD(current.horizontalBegin(macroblock), current.horizontalBegin(macroblock + 1),
+                             previous.regionBegin(prevX, prevY, MAX_N, MAX_N));
         }
-        prevSad = newSad;
-        newSad = findSAD(current.horizontalBegin(macroblock), current.horizontalBegin(macroblock + 1),
-                         previous.regionBegin(prevX, prevY, MAX_N, MAX_N));
+        while(newSad < prevSad);
+        newSad = prevSad;
+        prevY++;
     }
-    while(newSad < prevSad);
-    newSad = prevSad;
-    prevY++;
+    while(newSad < origSad);
     *x = static_cast<int8_t>(prevX - macroblockX * MAX_N),
     *y = static_cast<int8_t>(prevY - macroblockY * MAX_N), *sad = prevSad;
 }
