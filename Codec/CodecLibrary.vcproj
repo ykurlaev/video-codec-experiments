@@ -179,19 +179,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\lib\codec.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lib\constantvalueiterator.inl"
 				>
 			</File>
 			<File
 				RelativePath=".\src\lib\dct.inl"
-				>
-			</File>
-			<File
-				RelativePath=".\src\lib\decoder.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\lib\encoder.cpp"
 				>
 			</File>
 			<File
@@ -249,19 +245,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\lib\codec.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lib\constantvalueiterator.h"
 				>
 			</File>
 			<File
 				RelativePath=".\src\lib\dct.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\lib\decoder.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\lib\encoder.h"
 				>
 			</File>
 			<File
