@@ -10,6 +10,7 @@
 #include "findaverage.h"
 #include "findsad.h"
 #include "frame.h"
+#include "interpolator.h"
 #include "motionestimator.h"
 #include "normalize.h"
 #include "precompressor.h"
@@ -53,9 +54,9 @@ class Codec
         std::ostream *m_error;
         const Frame<>::coord_t *m_zigZagScan;
         ByteArraySerializer m_byteArraySerializer;
+        DCT m_dct;
         FindAverage m_findAverage;
         FindSAD m_findSAD;
-        DCT m_dct;
         MotionEstimator m_motionEstimator;
         Normalize m_normalize;
         Predictor m_predictor;
@@ -64,7 +65,7 @@ class Codec
         ZlibCompress m_zlibCompress;
         ZlibDecompress m_zlibDecompress;
         Frame<16> m_current;
-        Frame<16> m_previous;
+        Interpolator m_previous;
         std::vector<uint8_t> m_uncompressed;
         std::vector<uint8_t> m_precompressed;
         std::vector<uint8_t> m_compressed;

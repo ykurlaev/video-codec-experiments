@@ -71,8 +71,6 @@ inline void Precompressor::applyForward(Iterator begin, Iterator end)
                     uint8_t u = ((f << (sizeof(u_value_type) - b + 1)) |
                                  (s >> (8 - (sizeof(u_value_type) - b + 1)))) & 0xFF;
                     if(u != sign)
-                    //if((bytes[b] >> (sizeof(u_value_type) - b))
-                    //   != (sign >> (sizeof(u_value_type) - b)))
                     {
                         break;
                     }

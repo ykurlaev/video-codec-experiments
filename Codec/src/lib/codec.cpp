@@ -69,7 +69,7 @@ Codec::Codec(Direction direction, FILE *input, FILE *output,
       m_width(width), m_height(height),
       m_quality(quality), m_flat(flat), m_silent(silent), m_error(error),
       m_zigZagScan(ZigZagScan<8, 16>::getScan()), m_quantization(flat, quality),
-      m_current(width, height), m_previous(width, height),
+      m_current(width, height), m_previous(m_current.getAlignedWidth(), m_current.getAlignedHeight()),
       m_uncompressed(m_current.getWidth() * m_current.getHeight()),
       m_precompressed(m_current.getAlignedWidth() * m_current.getAlignedHeight() * Precompressor::MAX_BYTES),
       m_compressed(m_precompressed.size()),
@@ -95,7 +95,8 @@ bool Codec::encode()
 #endif
         for(unsigned count = 1; ; count++)
         {
-            swap(m_previous, m_current);
+            m_previous.fillFrom(m_current.regionBegin(0, 0, m_current.getAlignedWidth(), m_current.getAlignedHeight()),
+                                    m_current.regionEnd());
             m_current.clear();
             if(m_byteArraySerializer.deserializeByteArray(m_input, &m_uncompressed[0], m_uncompressed.size(), false)
                != m_uncompressed.size())
@@ -110,11 +111,11 @@ bool Codec::encode()
             m_precompressor.setByteArray(&m_precompressed[0]);
             m_prevMacroblockAverage = 128;
             bool forceI = false;
-            if(m_findSAD(m_current.horizontalBegin(), m_current.horizontalEnd(), m_previous.horizontalBegin())
-               > 12 * m_current.getAlignedWidth() * m_current.getAlignedHeight())
-            {
-                forceI = true;
-            }
+            //if(m_findSAD(m_current.horizontalBegin(), m_current.horizontalEnd(), m_previous.horizontalBegin())
+            //   > 12 * m_current.getAlignedWidth() * m_current.getAlignedHeight())
+            //{
+            //    forceI = true;
+            //}
             for(Frame<>::coord_t macroblock = 0;
                 macroblock < (m_current.getAlignedWidth() * m_current.getAlignedHeight()) / (16 * 16);
                 macroblock++)
@@ -194,7 +195,8 @@ bool Codec::decode()
             m_precompressor.applyReverse(&m_macroblockIsInter[0], &m_macroblockIsInter[0] + m_macroblockIsInter.size());
             m_precompressor.applyReverse(&m_motionVectorsX[0], &m_motionVectorsX[0] + m_motionVectorsX.size());
             m_precompressor.applyReverse(&m_motionVectorsY[0], &m_motionVectorsY[0] + m_motionVectorsY.size());
-            swap(m_previous, m_current);
+            m_previous.fillFrom(m_current.regionBegin(0, 0, m_current.getAlignedWidth(), m_current.getAlignedHeight()),
+                                    m_current.regionEnd());
             m_precompressor.setByteArray(&m_precompressed[0]);
             m_prevMacroblockAverage = 128;
             for(Frame<>::coord_t macroblock = 0;
@@ -238,8 +240,9 @@ void Codec::processMacroblockForward(Frame<>::coord_t macroblock, bool forceI)
         m_macroblockIsInter[macroblock / 8] |= (1 << (macroblock % 8));
         m_predictor.applyForward(m_current.horizontalBegin(macroblock),
                                  m_current.horizontalBegin(macroblock + 1),
-                                 m_previous.regionBegin(currentX + m_motionVectorsX[macroblock],
-                                                        currentY + m_motionVectorsY[macroblock],
+                                 m_previous.regionBegin(currentX, currentY,
+                                                        m_motionVectorsX[macroblock],
+                                                        m_motionVectorsY[macroblock],
                                                         16, 16));
     }
     else
@@ -305,8 +308,9 @@ void Codec::processMacroblockReverse(Frame<>::coord_t macroblock)
     {
         m_predictor.applyReverse(m_current.horizontalBegin(macroblock),
                                  m_current.horizontalBegin(macroblock + 1),
-                                 m_previous.regionBegin(currentX + m_motionVectorsX[macroblock],
-                                                        currentY + m_motionVectorsY[macroblock],
+                                 m_previous.regionBegin(currentX, currentY,
+                                                        m_motionVectorsX[macroblock],
+                                                        m_motionVectorsY[macroblock],
                                                         16, 16));
     }
 }
