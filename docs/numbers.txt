@@ -1,11 +1,5 @@
-<master>            size    a(w) psnr
-short,non-flat    1809514  22.99(17.32)
-short,flat         936928  20.91(15.22)
-long,non-flat    11835455  31.71(18.24)
-long,flat         5871084  31.91(16.01)
-
-<new>               size    a(w) psnr
-short,non-flat    1806818  23.02(17.31)
-short,flat         915858  20.97(15.28)
-long,non-flat    11851666  33.21(18.30)
-long,flat         5831663  32.05(16.08)
+                    size    a(w) psnr
+short,non-flat    1713981  23.10(17.33)
+short,flat         890519  21.06(15.49)
+long,non-flat    11401077  33.22(18.31)
+long,flat         5734018  32.12(16.09)

@@ -83,7 +83,7 @@ int decode(int argc, char *argv[])
         ZlibDecompress zlibDecompress;
         const Frame<>::coord_t *zigZagScan = ZigZagScan<8, 16>::getScan();
         Precompressor precompressor;
-        Quantization quantization(flat, quality);
+        Quantization<2> quantization(flat, quality);
         DCT dct;
         FindAverage findAverage;
         Predictor predictor;

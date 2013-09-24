@@ -6,6 +6,7 @@
 namespace Codec
 {
 
+template <size_t N>
 class Quantization
 {
     public:
@@ -17,7 +18,7 @@ class Quantization
     private:
         bool m_flat;
         uint8_t m_param;
-        int m_table[64];
+        int m_table[64 * N * N];
 };
 
 }

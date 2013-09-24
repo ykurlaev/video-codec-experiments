@@ -3,7 +3,8 @@
 namespace Codec
 {
 
-inline Quantization::Quantization(bool flat, uint8_t param)
+template <size_t N>
+inline Quantization<N>::Quantization(bool flat, uint8_t param)
     : m_flat(flat), m_param(param)
 {
     if(m_param < 1 || (!m_flat && m_param > 100))
@@ -22,15 +23,23 @@ inline Quantization::Quantization(bool flat, uint8_t param)
     if(!m_flat)
     {
         int n = (m_param < 50) ? (5000 / m_param) : (200 - 2 * m_param);
-        for(size_t i = 0; i < sizeof(m_table) / sizeof(*m_table); i++)
+        for(size_t y = 0; y < N; y++)
         {
-            m_table[i] = ((n * JPEG_TABLE[i]) + 500) / 100;
+            for(size_t x = 0; x < N; x++)
+            {
+                for(size_t i = 0; i < 64; i++)
+                {
+                    m_table[8 * N * (8 * y + i / 8) + 8 * x + i % 8] =
+                        ((n * JPEG_TABLE[i]) + 500) / 100;
+                }
+            }
         }
     }
 }
 
+template <size_t N>
 template <typename Iterator>
-inline void Quantization::applyForward(Iterator begin, Iterator end)
+inline void Quantization<N>::applyForward(Iterator begin, Iterator end)
 {
     size_t i = 0;
     for(; begin != end; ++begin)
@@ -47,8 +56,9 @@ inline void Quantization::applyForward(Iterator begin, Iterator end)
     }
 }
 
+template <size_t N>
 template <typename Iterator>
-inline void Quantization::applyReverse(Iterator begin, Iterator end)
+inline void Quantization<N>::applyReverse(Iterator begin, Iterator end)
 {
     size_t i = 0;
     for(; begin != end; ++begin)

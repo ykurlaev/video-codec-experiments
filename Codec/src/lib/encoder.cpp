@@ -105,7 +105,7 @@ int encode(int argc, char *argv[])
         MotionEstimator motionEstimator;
         Predictor predictor;
         DCT dct;
-        Quantization quantization(flat, quality);
+        Quantization<2> quantization(flat, quality);
         const Frame<>::coord_t *zigZagScan = ZigZagScan<8, 16>::getScan();
         Precompressor precompressor;
         ZlibCompress zlibCompress;
