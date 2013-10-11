@@ -62,7 +62,8 @@ int main(int argc, char *argv[])
         {
             silent = true;
         }
-        Codec::Codec codec = Codec::Codec::initEncode(in, out, width, height, quality, flat, silent);
+        Codec::Codec codec = Codec::Codec::initEncode(in, out, width, height, quality,
+                                                      flat ? Codec::Format::FLAT : Codec::Format::JPEG, silent);
         if(!codec())
         {
             return 2;

@@ -112,8 +112,12 @@ inline void MotionEstimator::operator()(Frame<MIN_N, MAX_N> &current, Frame<MIN_
         prevY++;
     }
     while(newSad < origSad);
-    *x = static_cast<int8_t>(prevX - macroblockX * MAX_N),
-    *y = static_cast<int8_t>(prevY - macroblockY * MAX_N), *sad = prevSad;
+    *x = static_cast<int8_t>(prevX - macroblockX * MAX_N);
+    *y = static_cast<int8_t>(prevY - macroblockY * MAX_N);
+    if(sad != NULL)
+    {
+        *sad = prevSad;
+    }
 }
 
 }

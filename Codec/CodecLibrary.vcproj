@@ -199,7 +199,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\lib\format.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lib\frame.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\macroblock.cpp"
 				>
 			</File>
 			<File
@@ -265,7 +273,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\lib\format.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lib\frame.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\macroblock.h"
 				>
 			</File>
 			<File

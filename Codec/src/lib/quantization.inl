@@ -4,10 +4,14 @@ namespace Codec
 {
 
 template <size_t N>
-inline Quantization<N>::Quantization(bool flat, uint8_t param)
-    : m_flat(flat), m_param(param)
+inline Quantization<N>::Quantization()
+    : m_paramsSet(false), m_quality(0), m_mode(Format::FLAT)
+{}
+
+template <size_t N>
+inline void Quantization<N>::setParams(Format::QuantizationMode mode, uint8_t quality)
 {
-    if(m_param < 1 || (!m_flat && m_param > 100))
+    if(quality < 1 || ((mode != Format::FLAT) && quality > 100))
     {
        throw std::runtime_error("Invalid quality value");
     }
@@ -20,38 +24,42 @@ inline Quantization<N>::Quantization(bool flat, uint8_t param)
                                           24, 35, 55, 64, 81, 104, 113, 92,
                                           49, 64, 78, 87, 103, 121, 120, 101,
                                           72, 92, 95, 98, 112, 100, 103, 99 };
-    if(!m_flat)
+    int n = (quality < 50) ? (5000 / quality) : (200 - 2 * quality);
+    for(size_t y = 0; y < N; y++)
     {
-        int n = (m_param < 50) ? (5000 / m_param) : (200 - 2 * m_param);
-        for(size_t y = 0; y < N; y++)
+        for(size_t x = 0; x < N; x++)
         {
-            for(size_t x = 0; x < N; x++)
+            for(size_t i = 0; i < 64; i++)
             {
-                for(size_t i = 0; i < 64; i++)
+                if(mode == Format::JPEG)
                 {
                     m_table[8 * N * (8 * y + i / 8) + 8 * x + i % 8] =
                         ((n * JPEG_TABLE[i]) + 500) / 100;
                 }
+                else
+                {
+                    m_table[8 * N * (8 * y + i / 8) + 8 * x + i % 8] = quality;
+                }
             }
         }
     }
+    m_paramsSet = true;
+    m_quality = quality;
+    m_mode = mode;
 }
 
 template <size_t N>
 template <typename Iterator>
 inline void Quantization<N>::applyForward(Iterator begin, Iterator end)
 {
+    if(!m_paramsSet)
+    {
+       throw std::runtime_error("Params are not set");
+    }
     size_t i = 0;
     for(; begin != end; ++begin)
     {
-        if(m_flat)
-        {
-            *begin /= m_param;
-        }
-        else
-        {
-            *begin /= m_table[i];
-        }
+        *begin /= m_table[i];
         i = (i + 1) % (sizeof(m_table) / sizeof(*m_table));
     }
 }
@@ -60,17 +68,14 @@ template <size_t N>
 template <typename Iterator>
 inline void Quantization<N>::applyReverse(Iterator begin, Iterator end)
 {
+    if(!m_paramsSet)
+    {
+       throw std::runtime_error("Params are not set");
+    }
     size_t i = 0;
     for(; begin != end; ++begin)
     {
-        if(m_flat)
-        {
-            *begin *= m_param;
-        }
-        else
-        {
-            *begin *= m_table[i];
-        }
+        *begin *= m_table[i];
         i = (i + 1) % (sizeof(m_table) / sizeof(*m_table));
     }
 }

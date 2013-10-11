@@ -7,26 +7,37 @@ namespace Codec
 using std::runtime_error;
 
 ZlibCompress::ZlibCompress(int level)
-    : m_level(level)
 {
     m_zStream.zalloc = Z_NULL;
     m_zStream.zfree = Z_NULL;
     m_zStream.opaque = Z_NULL;
-    deflateInit(&m_zStream, m_level);
+    deflateInit(&m_zStream, level);
 }
 
-size_t ZlibCompress::operator()(uint8_t *from, uint8_t *to, size_t fromSize, size_t toSize)
+void ZlibCompress::setOutput(uint8_t *ptr, size_t size)
 {
-    m_zStream.next_in = from;
-    m_zStream.avail_in = fromSize;
-    m_zStream.next_out = to;
-    m_zStream.avail_out = toSize;
-    deflate(&m_zStream, Z_SYNC_FLUSH);
+    m_zStream.next_out = ptr;
+    m_zStream.avail_out = size;
+    m_maxOutputSize = size;
+}
+
+void ZlibCompress::operator()(uint8_t *ptr, size_t size)
+{
+    m_zStream.next_in = ptr;
+    m_zStream.avail_in = size;
+    deflate(&m_zStream, Z_NO_FLUSH);
     if(m_zStream.msg != NULL)
     {
         throw runtime_error(m_zStream.msg);
     }
-    return toSize - m_zStream.avail_out;
+}
+
+size_t ZlibCompress::getOutputSize()
+{
+    m_zStream.next_in = NULL;
+    m_zStream.avail_in = 0;
+    deflate(&m_zStream, Z_FULL_FLUSH);
+    return m_maxOutputSize - m_zStream.avail_out;
 }
 
 ZlibCompress::~ZlibCompress()

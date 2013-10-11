@@ -71,8 +71,6 @@ inline void Precompressor::applyForward(Iterator begin, Iterator end)
                     uint8_t u = ((f << (sizeof(u_value_type) - b + 1)) |
                                  (s >> (8 - (sizeof(u_value_type) - b + 1)))) & 0xFF;
                     if(u != sign)
-                    //if((bytes[b] >> (sizeof(u_value_type) - b))
-                    //   != (sign >> (sizeof(u_value_type) - b)))
                     {
                         break;
                     }
@@ -138,7 +136,7 @@ inline void Precompressor::applyReverse(Iterator begin, Iterator end)
                 uint8_t bytes[sizeof(u_value_type)];
                 uint8_t firstByte = *m_byteArray++;
                 size_t byteCount = 1;
-                for(; ; byteCount++)
+                for(; byteCount < sizeof(u_value_type) + 1; byteCount++)
                 {
                     if(((firstByte >> (8 - byteCount)) & 0x01) == 0)
                     {
@@ -146,18 +144,16 @@ inline void Precompressor::applyReverse(Iterator begin, Iterator end)
                     }
                 }
                 uint8_t sign = (((firstByte >> (8 - byteCount - 1)) & 0x01) == 1) ? 0xFF : 0;
-                for(size_t b = 0; b < sizeof(u_value_type) - byteCount; b++)
-                {
-                    bytes[b] = sign;
-                }
-                size_t b = 0;
                 if(byteCount <= sizeof(u_value_type))
                 {
+                    for(size_t b = 0; b < sizeof(u_value_type) - byteCount; b++)
+                    {
+                        bytes[b] = sign;
+                    }
                     bytes[sizeof(u_value_type) - byteCount] = ((sign >> (8 - byteCount)) << (8 - byteCount))
                                                               | (firstByte & (0x00FF >> byteCount));
-                    b++;
                 }
-                for(; b < byteCount; b++)
+                for(size_t b = 1; b < byteCount; b++)
                 {
                     bytes[sizeof(u_value_type) - byteCount + b] = *m_byteArray++;
                 }

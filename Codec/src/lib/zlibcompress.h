@@ -11,11 +11,13 @@ class ZlibCompress
 {
     public:
         ZlibCompress(int level = Z_DEFAULT_COMPRESSION);
-        virtual size_t operator()(uint8_t *from, uint8_t *to, size_t fromSize, size_t toSize);
-        virtual ~ZlibCompress();
+        void setOutput(uint8_t *ptr, size_t size);
+        void operator()(uint8_t *ptr, size_t size);
+        size_t getOutputSize();
+        ~ZlibCompress();
     private:
-        int m_level;
         z_stream m_zStream;
+        size_t m_maxOutputSize;
 };
 
 }
