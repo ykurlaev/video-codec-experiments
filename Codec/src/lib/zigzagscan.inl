@@ -2,7 +2,7 @@ namespace Codec
 {
 
 template <size_t MIN_N, size_t MAX_N>
-inline const typename Frame<>::coord_t *ZigZagScan<MIN_N, MAX_N>::getScan()
+inline const coord_t *ZigZagScan<MIN_N, MAX_N>::getScan()
 {
     static ZigZagScan instance;
     return instance.m_scan;
@@ -11,16 +11,16 @@ inline const typename Frame<>::coord_t *ZigZagScan<MIN_N, MAX_N>::getScan()
 template <size_t MIN_N, size_t MAX_N>
 inline ZigZagScan<MIN_N, MAX_N>::ZigZagScan()
 {
-    for(Frame<>::coord_t block = 0; block < (MAX_N * MAX_N) / (MIN_N * MIN_N); block++)
+    for(coord_t block = 0; block < (MAX_N * MAX_N) / (MIN_N * MIN_N); block++)
     {
-        Frame<>::coord_t blockX = 0;
-        Frame<>::coord_t blockY = 0;
+        coord_t blockX = 0;
+        coord_t blockY = 0;
         for(uint32_t size = MAX_N / 2; size >= MIN_N; size /= 2)
         {
             blockX += (block % 2) * size;
             blockY += (block / 2) * size;
         }
-        typename MakeSigned<Frame<>::coord_t>::t x = 0, y = 0;
+        scoord_t x = 0, y = 0;
         int d = -1;
         for(size_t i = 0; i < (MIN_N * MIN_N + 1) / 2; i++)
         {

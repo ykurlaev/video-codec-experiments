@@ -36,7 +36,7 @@ bool FrameTest::testFrameIterators()
     frame.fromByteArray(vertical);
     check(frame.verticalBegin(), frame.verticalEnd(), "Frame::VerticalIterator fail");
     frame.fromByteArray(scanning);
-    const Frame<>::coord_t *zigZagScan = ZigZagScan<2>::getScan();
+    const coord_t *zigZagScan = ZigZagScan<2>::getScan();
     check(frame.scanningBegin(zigZagScan), frame.scanningEnd(), "Frame::ScanningIterator fail");
     return true;
 }

@@ -9,9 +9,6 @@ namespace Codec
 
 class MotionEstimator
 {
-    private:
-        typedef Frame<>::coord_t coord_t;
-        typedef MakeSigned<coord_t>::t scoord_t;
     public:
         template <uint32_t MIN_N, uint32_t MAX_N>
         void operator()(Frame<MIN_N, MAX_N> &current, Frame<MIN_N, MAX_N> &previous, coord_t macroblock,

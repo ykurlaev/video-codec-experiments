@@ -8,12 +8,12 @@ Context::Context()
 { }
 
 Macroblock::Macroblock(Frame<SIZE> *frame, Frame<SIZE> *previousFrame,
-                       Frame<>::coord_t number, Macroblock **neighbors,
+                       coord_t number, Macroblock **neighbors,
                        Codec::Context *context)
     : m_frame(frame), m_previousFrame(previousFrame), m_number(number),
       m_context(context)
 {
-    Frame<>::coord_t macroblockWidth = m_frame->getAlignedWidth() / SIZE;
+    coord_t macroblockWidth = m_frame->getAlignedWidth() / SIZE;
     m_x = m_number % macroblockWidth;
     m_y = m_number / macroblockWidth;
     for(size_t i = 0; i < 4; i++)

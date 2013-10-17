@@ -35,25 +35,25 @@ inline Frame<MIN_N, MAX_N>::Frame(coord_t width, coord_t height)
 }
 
 template <uint32_t MIN_N, uint32_t MAX_N>
-inline typename Frame<MIN_N, MAX_N>::coord_t Frame<MIN_N, MAX_N>::getWidth() const 
+inline coord_t Frame<MIN_N, MAX_N>::getWidth() const 
 {
     return m_width;
 }
 
 template <uint32_t MIN_N, uint32_t MAX_N>
-inline typename Frame<MIN_N, MAX_N>::coord_t Frame<MIN_N, MAX_N>::getHeight() const
+inline coord_t Frame<MIN_N, MAX_N>::getHeight() const
 {
     return m_height;
 }
 
 template <uint32_t MIN_N, uint32_t MAX_N>
-inline typename Frame<MIN_N, MAX_N>::coord_t Frame<MIN_N, MAX_N>::getAlignedWidth() const
+inline coord_t Frame<MIN_N, MAX_N>::getAlignedWidth() const
 {
     return m_alignedWidth;
 }
 
 template <uint32_t MIN_N, uint32_t MAX_N>
-inline typename Frame<MIN_N, MAX_N>::coord_t Frame<MIN_N, MAX_N>::getAlignedHeight() const
+inline coord_t Frame<MIN_N, MAX_N>::getAlignedHeight() const
 {
     return m_alignedHeight;
 }

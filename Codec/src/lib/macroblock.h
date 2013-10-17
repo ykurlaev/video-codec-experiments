@@ -25,7 +25,7 @@ struct Context
 {
     Context();
     static const coord_t SIZE = 16;
-    const Frame<>::coord_t *m_scan;
+    const coord_t *m_scan;
     Predictor m_predictor;
     MotionEstimator m_motionEstimator;
     DCT m_dct;

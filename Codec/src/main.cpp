@@ -36,8 +36,8 @@ int main(int argc, char *argv[])
             cerr << "Error: Can't open output file " << argv[3] << "\n";
             return 2;
         }
-        Codec::Frame<>::coord_t width;
-        Codec::Frame<>::coord_t height;
+        Codec::coord_t width;
+        Codec::coord_t height;
         istringstream(argv[1]) >> width;
         istringstream(argv[2]) >> height;
         uint8_t quality = 50;

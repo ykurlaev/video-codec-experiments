@@ -18,9 +18,6 @@ typedef unsigned __int64 uint64_t;
 namespace Codec
 {
 
-typedef uint32_t coord_t;
-typedef int data_t;
-
 template <size_t N>
 struct IntN;
 
@@ -63,6 +60,11 @@ struct MakeUnsigned
 {
     typedef typename IntN<sizeof(T)>::u t;
 };
+
+typedef uint32_t coord_t;
+typedef int data_t;
+
+typedef MakeSigned<coord_t>::t scoord_t;
 
 }
 

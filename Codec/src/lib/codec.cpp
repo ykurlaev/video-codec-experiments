@@ -18,7 +18,7 @@ using std::copy;
 using std::exception;
 
 Codec Codec::initEncode(FILE *input, FILE *output,
-                        Frame<>::coord_t width, Frame<>::coord_t height,
+                        coord_t width, coord_t height,
                         uint8_t quality, Format::QuantizationMode mode,
                         bool silent, ostream *error)
 {
@@ -54,13 +54,13 @@ Codec::Codec(Direction direction, FILE *input, FILE *output,
       m_uncompressed(m_current.getWidth() * m_current.getHeight()),
       m_format((direction == ENCODE) ? output : input, m_current.getWidth() * m_current.getHeight() * 4)
 {
-    Frame<>::coord_t macroblockWidth = m_current.getAlignedWidth() / 16;
-    Frame<>::coord_t count = (m_current.getAlignedWidth() * m_current.getAlignedHeight()) / (16 * 16);
+    coord_t macroblockWidth = m_current.getAlignedWidth() / 16;
+    coord_t count = (m_current.getAlignedWidth() * m_current.getAlignedHeight()) / (16 * 16);
     m_macroblocks.reserve(count);
-    for(Frame<>::coord_t macroblock = 0; macroblock < count; macroblock++)
+    for(coord_t macroblock = 0; macroblock < count; macroblock++)
     {
-        Frame<>::coord_t x = macroblock % macroblockWidth;
-        Frame<>::coord_t y = macroblock / macroblockWidth;
+        coord_t x = macroblock % macroblockWidth;
+        coord_t y = macroblock / macroblockWidth;
         Macroblock *neighbors[4] = { NULL, NULL, NULL, NULL };
         if(x > 0)
         {
@@ -123,26 +123,23 @@ bool Codec::encode()
             for(vector<Macroblock>::iterator it = m_macroblocks.begin();
                 it != m_macroblocks.end(); ++it)
             {
-                it->processForward(Format::I);
                 uint8_t *buffer = &IPrecompressed[0];
+                size_t PSize = ~0U;
+                uint8_t *PBuffer = &PPrecompressed[0];
+                it->processForward(Format::I);
                 size_t size = it->precompressTo(&m_format, buffer);
                 it->processReverse();
                 if(!forceI)
                 {
                     it->processForward(Format::P);
-                    uint8_t *PBuffer = &PPrecompressed[0];
-                    size_t PSize = it->precompressTo(&m_format, PBuffer);
+                    PSize = it->precompressTo(&m_format, PBuffer);
                     it->processReverse();
-                    if(PSize < size)
-                    {
-                        it->chooseMode(Format::P);
-                        size = PSize;
-                        buffer = PBuffer;
-                    }
-                    else
-                    {
-                        it->chooseMode(Format::I);
-                    }
+                }
+                if(!forceI && (PSize < size))
+                {
+                    it->chooseMode(Format::P);
+                    size = PSize;
+                    buffer = PBuffer;
                 }
                 else
                 {

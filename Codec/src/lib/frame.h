@@ -8,7 +8,7 @@
 namespace Codec
 {
 
-template <uint32_t MIN_N = 0, uint32_t MAX_N = MIN_N>
+template <uint32_t MIN_N, uint32_t MAX_N = MIN_N>
 class Frame
 {
     private:
@@ -19,10 +19,6 @@ class Frame
         class VerticalBlockIterator;
         class ScanningBlockIterator;
     public:
-        static const uint32_t MIN_BLOCK_SIZE = MIN_N;
-        static const uint32_t MAX_BLOCK_SIZE = MAX_N;
-        typedef uint32_t coord_t;
-        typedef int data_t;
         Frame(coord_t width, coord_t height);
         coord_t getWidth() const;
         coord_t getHeight() const;
@@ -58,7 +54,7 @@ void swap(Frame<MIN_N, MAX_N> &first, Frame<MIN_N, MAX_N> &second);
 template <uint32_t MIN_N, uint32_t MAX_N>
 template <typename T>
 class Frame<MIN_N, MAX_N>::BaseIterator
-    : public std::iterator<std::forward_iterator_tag, typename Frame<MIN_N, MAX_N>::data_t>
+    : public std::iterator<std::forward_iterator_tag, data_t>
 {
    public:
         bool operator==(const T& other) const;

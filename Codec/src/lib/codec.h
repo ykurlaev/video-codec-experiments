@@ -26,7 +26,7 @@ class Codec
 {
     public:
         static Codec initEncode(FILE *input, FILE *output,
-                                Frame<>::coord_t width, Frame<>::coord_t height,
+                                coord_t width, coord_t height,
                                 uint8_t quality, Format::QuantizationMode mode,
                                 bool silent, std::ostream *error = &std::cerr);
         static Codec initDecode(FILE *input, FILE *output,
