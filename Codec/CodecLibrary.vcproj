@@ -207,6 +207,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\lib\linearinterpolatingiterator.inl"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lib\macroblock.cpp"
 				>
 			</File>
@@ -278,6 +282,10 @@
 			</File>
 			<File
 				RelativePath=".\src\lib\frame.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lib\linearinterpolatingiterator.h"
 				>
 			</File>
 			<File

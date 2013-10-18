@@ -7,11 +7,13 @@ Context::Context()
     : m_scan(ZigZagScan<8, SIZE>::getScan())
 { }
 
-Macroblock::Macroblock(Frame<SIZE> *frame, Frame<SIZE> *previousFrame,
+Macroblock::Macroblock(Frame<SIZE> *frame, std::vector<Frame<SIZE> *> previousFrames,
+                       std::vector<int> previousFramesOffsets,
                        coord_t number, Macroblock **neighbors,
                        Codec::Context *context)
-    : m_frame(frame), m_previousFrame(previousFrame), m_number(number),
-      m_context(context)
+    : m_frame(frame), m_previousFrames(previousFrames),
+      m_previousFramesOffsets(previousFramesOffsets),
+      m_number(number), m_context(context)
 {
     coord_t macroblockWidth = m_frame->getAlignedWidth() / SIZE;
     m_x = m_number % macroblockWidth;
@@ -27,13 +29,13 @@ void Macroblock::processForward(Format::MacroblockMode mode)
     m_params.m_mode = mode;
     if(m_params.m_mode == Format::P)
     {
-        m_context->m_motionEstimator(*m_frame, *m_previousFrame, m_number,
+        m_context->m_motionEstimator(*m_frame, *m_previousFrames[0], m_number,
                                      &m_params.m_xMotion, &m_params.m_yMotion);
         m_context->m_predictor.applyForward(m_frame->horizontalBegin(m_number),
                                             m_frame->horizontalBegin(m_number + 1),
-                                            m_previousFrame->regionBegin(m_x * SIZE + m_params.m_xMotion,
-                                                                         m_y * SIZE + m_params.m_yMotion,
-                                                                         16, 16));
+                                            m_previousFrames[0]->regionBegin(m_x * SIZE + m_params.m_xMotion,
+                                                                             m_y * SIZE + m_params.m_yMotion,
+                                                                             16, 16));
     }
     else
     {
@@ -85,9 +87,9 @@ void Macroblock::processReverse()
         m_average = m_PAverage;
         m_context->m_predictor.applyReverse(m_frame->horizontalBegin(m_number),
                                             m_frame->horizontalBegin(m_number + 1),
-                                            m_previousFrame->regionBegin(m_x * SIZE + m_params.m_xMotion,
-                                                                         m_y * SIZE + m_params.m_yMotion,
-                                                                         16, 16));
+                                            m_previousFrames[0]->regionBegin(m_x * SIZE + m_params.m_xMotion,
+                                                                             m_y * SIZE + m_params.m_yMotion,
+                                                                             16, 16));
     }
     else
     {

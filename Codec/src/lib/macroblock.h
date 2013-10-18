@@ -39,7 +39,8 @@ class Macroblock
     private:
         static const coord_t SIZE = 16;
     public:
-        Macroblock(Frame<SIZE> *frame, Frame<SIZE> *previousFrame,
+        Macroblock(Frame<SIZE> *frame, std::vector<Frame<SIZE> *> previousFrames,
+                   std::vector<int> previousFramesOffsets,
                    coord_t number, Macroblock **m_neighbors,
                    Codec::Context *context);
         void processForward(Format::MacroblockMode mode);
@@ -49,7 +50,8 @@ class Macroblock
         void chooseMode(Format::MacroblockMode mode);
     private:
         Frame<SIZE> *m_frame;
-        Frame<SIZE> *m_previousFrame;
+        std::vector<Frame<SIZE> *> m_previousFrames;
+        std::vector<int> m_previousFramesOffsets;
         coord_t m_number;
         coord_t m_x;
         coord_t m_y;
