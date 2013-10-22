@@ -86,15 +86,15 @@ size_t Format::writeMacroblockParams(MacroblockParams params, uint8_t *ptr)
     size_t result = 0;
     uint8_t x = static_cast<uint8_t>(params.m_xMotion);
     uint8_t y = static_cast<uint8_t>(params.m_yMotion);
+    uint8_t xSign = (((x >> 2) & 0x01) != 0) ? 0xFC : 0x00;
+    uint8_t ySign = (((y >> 2) & 0x01) != 0) ? 0xFC : 0x00;
     switch(params.m_mode)
     {
         case I:
-            *ptr = params.m_IMode & 0x7F;
+            *ptr = params.m_IMode & 0x3F;
             result = 1;
             break;
         case P:
-            uint8_t xSign = (((x >> 2) & 0x01) != 0) ? 0xFC : 0x00;
-            uint8_t ySign = (((y >> 2) & 0x01) != 0) ? 0xFC : 0x00;
             if(((x & 0xF8) == xSign) && ((y & 0xF8) == ySign))
             {
                 *ptr = 0x80 | ((x & 0x07) << 3) | (y & 0x07);
@@ -107,6 +107,28 @@ size_t Format::writeMacroblockParams(MacroblockParams params, uint8_t *ptr)
                 result = 2;
             }
             break;
+        case P2:
+        case B:
+            uint8_t x2 = static_cast<uint8_t>(params.m_xMotion2);
+            uint8_t y2 = static_cast<uint8_t>(params.m_yMotion2);
+            uint8_t xSign2 = (((x2 >> 2) & 0x01) != 0) ? 0xFC : 0x00;
+            uint8_t ySign2 = (((y2 >> 2) & 0x01) != 0) ? 0xFC : 0x00;
+            if(((x & 0xF8) == xSign) && ((y & 0xF8) == ySign) &&
+               ((x2 & 0xF8) == xSign2) && ((y2 & 0xF8) == ySign2))
+            {
+                *ptr = ((params.m_mode == P2) ? 0x40 : 0x60) | ((x & 0x07) << 1) | ((y & 0x04) >> 2);
+                *(ptr + 1) = ((y & 0x03) << 6) | ((x2 & 0x07) << 3) | (y2 & 0x07);
+                result = 2;
+            }
+            else
+            {
+                *ptr = ((params.m_mode == P2) ? 0x50 : 0x70) | ((x & 0x70) >> 4);
+                *(ptr + 1) = ((x & 0x07) << 5) | ((y & 0x1F) >> 3);
+                *(ptr + 2) = ((y & 0x03) << 6) | ((x2 & 0xFC) >> 2);
+                *(ptr + 3) = ((x2 & 0x01) << 7) | (y2 & 0x7F);
+                result = 4;
+            }            
+            break;
     }
     return result;
 }
@@ -115,12 +137,51 @@ size_t Format::readMacroblockParams(MacroblockParams &params, uint8_t *ptr)
 {
     size_t result;
     uint8_t first = *ptr;
-    uint8_t uVectors[2];
+    uint8_t uVectors[4];
     if((first & 0x80) == 0)
     {
-        params.m_mode = I;
-        params.m_IMode = first & 0x7F;
-        result = 1;
+        if((first & 0x40) == 0)
+        {
+            params.m_mode = I;
+            params.m_IMode = first & 0x7F;
+            result = 1;
+        }
+        else
+        {
+            params.m_mode = ((first & 0x20) == 0) ? P2 : B;
+            if((first & 0x10) == 0)
+            {
+                uint8_t second = *(ptr + 1);
+                uVectors[0] = ((((first >> 3) & 0x01) != 0) ? 0xF8 : 0x00) |
+                              ((first & 0x0E) >> 1);
+                uVectors[1] = (((first & 0x01) != 0) ? 0xF8 : 0x00) | 
+                              ((first & 0x01) << 2) | ((second & 0xC0) >> 6);
+                uVectors[2] = ((((second >> 5) & 0x01) != 0) ? 0xF8 : 0x00) |
+                              ((second & 0x38) >> 3);
+                uVectors[3] = ((((second >> 2) & 0x01) != 0) ? 0xF8 : 0x00) |
+                              (second & 0x07);
+                result = 2;
+            }
+            else
+            {
+                uint8_t second = *(ptr + 1);
+                uint8_t third = *(ptr + 1);
+                uint8_t fourth = *(ptr + 1);
+                uVectors[0] = ((((first >> 3) & 0x01) != 0) ? 0x80 : 0x00) |
+                              ((first & 0x0F) << 3) | ((first & 0xE0) >> 5);
+                uVectors[1] = ((((second >> 4) & 0x01) != 0) ? 0x80 : 0x00) |
+                              ((second & 0x1F) << 2) | ((third & 0xC0) >> 6);
+                uVectors[2] = ((((third >> 5) & 0x01) != 0) ? 0x80 : 0x00) |
+                              ((third & 0x3F) << 1) | ((fourth & 0x80) >> 7);
+                uVectors[3] = ((((fourth >> 6) & 0x01) != 0) ? 0x80 : 0x00) |
+                              (fourth & 0x7F);
+                result = 4;
+            }
+            params.m_xMotion = static_cast<int8_t>(uVectors[0]);
+            params.m_yMotion = static_cast<int8_t>(uVectors[1]);
+            params.m_xMotion2 = static_cast<int8_t>(uVectors[2]);
+            params.m_yMotion2 = static_cast<int8_t>(uVectors[3]);
+        }    
     }
     else
     {

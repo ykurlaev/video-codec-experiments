@@ -48,8 +48,6 @@ Codec::Codec(Direction direction, FILE *input, FILE *output,
 {
     std::vector<Frame<SIZE> *> prevoisFrames;
     prevoisFrames.push_back(&m_previous);
-    std::vector<int> prevoisFramesOffsets;
-    prevoisFramesOffsets.push_back(-1);
     coord_t macroblockWidth = m_current.getAlignedWidth() / 16;
     coord_t count = (m_current.getAlignedWidth() * m_current.getAlignedHeight()) / (16 * 16);
     m_macroblocks.reserve(count);
@@ -74,7 +72,7 @@ Codec::Codec(Direction direction, FILE *input, FILE *output,
         {
             neighbors[3] = &m_macroblocks[macroblock - macroblockWidth + 1];
         }
-        m_macroblocks.push_back(Macroblock(&m_current, prevoisFrames, prevoisFramesOffsets,
+        m_macroblocks.push_back(Macroblock(&m_current, prevoisFrames,
                                            macroblock, neighbors, &m_context));
     }
     m_context.m_quantization.setParams(params.m_quantizationMode, params.m_quality);

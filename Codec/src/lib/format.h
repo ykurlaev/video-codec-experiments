@@ -31,13 +31,15 @@ class Format
             QuantizationMode m_quantizationMode;
             uint8_t m_quality;
         };
-        enum MacroblockMode { I = 0, P = 1 };
+        enum MacroblockMode { I = 0, P = 1, P2 = 2, B = 3 };
         struct MacroblockParams
         {
             MacroblockMode m_mode;
             uint8_t m_IMode;
             int8_t m_xMotion;
             int8_t m_yMotion;
+            int8_t m_xMotion2;
+            int8_t m_yMotion2;
         };
         Format(FILE *file, size_t bufferSize);
         void writeHeader(HeaderParams params);
