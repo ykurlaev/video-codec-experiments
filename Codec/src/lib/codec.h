@@ -25,21 +25,20 @@ namespace Codec
 class Codec
 {
     public:
-        static Codec initEncode(FILE *input, FILE *output,
-                                coord_t width, coord_t height,
-                                uint8_t quality, Format::QuantizationMode mode,
-                                bool silent, std::ostream *error = &std::cerr);
-        static Codec initDecode(FILE *input, FILE *output,
-                                bool silent, std::ostream *error = &std::cerr);
-        bool operator()();
+        static bool encode(FILE *input, FILE *output,
+                           coord_t width, coord_t height,
+                           uint8_t quality, Format::QuantizationMode mode,
+                           bool silent, std::ostream *error = &std::cerr);
+        static bool decode(FILE *input, FILE *output,
+                           bool silent, std::ostream *error = &std::cerr);
     private:
         static const size_t SIZE = 16;
         enum Direction { ENCODE, DECODE };
         Codec(Direction direction, FILE *input, FILE *output,
               Format::HeaderParams params,
               bool silent, std::ostream *error);
-        bool encode();
-        bool decode();
+        bool encodeInternal();
+        bool decodeInternal();
         Direction m_direction;
         FILE *m_input;
         FILE *m_output;

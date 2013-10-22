@@ -17,32 +17,24 @@ using std::vector;
 using std::copy;
 using std::exception;
 
-Codec Codec::initEncode(FILE *input, FILE *output,
-                        coord_t width, coord_t height,
-                        uint8_t quality, Format::QuantizationMode mode,
-                        bool silent, ostream *error)
+bool Codec::encode(FILE *input, FILE *output,
+                   coord_t width, coord_t height,
+                   uint8_t quality, Format::QuantizationMode mode,
+                   bool silent, ostream *error)
 {
-    return Codec(ENCODE, input, output, Format::HeaderParams(width, height, mode, quality), silent, error);
+    Codec codec(ENCODE, input, output,
+                Format::HeaderParams(width, height, mode, quality),
+                silent, error);
+    return codec.encodeInternal();
 }
 
-Codec Codec::initDecode(FILE *input, FILE *output,
-                        bool silent, ostream *error)
+bool Codec::decode(FILE *input, FILE *output,
+                   bool silent, ostream *error)
 
 {
     Format format(input, 1);
-    return Codec(DECODE, input, output, format.readHeader(), silent, error);
-}
-
-bool Codec::operator()()
-{
-    if(m_direction == ENCODE)
-    {
-        return encode();
-    }
-    else
-    {
-        return decode();
-    }
+    Codec codec(DECODE, input, output, format.readHeader(), silent, error);
+    return codec.decodeInternal();
 }
 
 Codec::Codec(Direction direction, FILE *input, FILE *output,
@@ -92,7 +84,7 @@ Codec::Codec(Direction direction, FILE *input, FILE *output,
     }
 }
 
-bool Codec::encode()
+bool Codec::encodeInternal()
 {
     try
     {
@@ -109,8 +101,7 @@ bool Codec::encode()
         {
             swap(m_previous, m_current);
             m_current.clear();
-            if(m_byteArraySerializer.deserializeByteArray(m_input, &m_uncompressed[0], m_uncompressed.size(), false)
-               != m_uncompressed.size())
+            if(!m_byteArraySerializer.deserializeByteArray(m_input, &m_uncompressed[0], m_uncompressed.size()))
             {
                 break;
             }
@@ -171,7 +162,7 @@ bool Codec::encode()
     return true;
 }
 
-bool Codec::decode()
+bool Codec::decodeInternal()
 {
     try
     {
@@ -210,7 +201,7 @@ bool Codec::decode()
                 it->processReverse();
             }
             m_current.toByteArray(&m_uncompressed[0]);
-            m_byteArraySerializer.serializeByteArray(&m_uncompressed[0], m_uncompressed.size(), m_output, false);
+            m_byteArraySerializer.serializeByteArray(&m_uncompressed[0], m_uncompressed.size(), m_output);
         }
         if(!m_silent)
         {
