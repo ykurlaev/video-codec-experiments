@@ -34,6 +34,11 @@ class Format
         enum MacroblockMode { I = 0, P = 1, P2 = 2, B = 3 };
         struct MacroblockParams
         {
+            MacroblockParams()
+                : m_mode(I), m_IMode(0),
+                  m_xMotion(0), m_yMotion(0),
+                  m_xMotion2(0), m_yMotion2(0)
+            {}
             MacroblockMode m_mode;
             uint8_t m_IMode;
             int8_t m_xMotion;

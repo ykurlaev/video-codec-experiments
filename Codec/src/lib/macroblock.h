@@ -53,8 +53,9 @@ class Macroblock
         coord_t m_x;
         coord_t m_y;
         Macroblock *m_neighbors[4];
-        data_t m_PAverage;
         data_t m_IAverage;
+        data_t m_PAverage;
+        data_t m_P2Average;
         data_t m_average;
         Format::MacroblockParams m_params;
         Context *m_context;

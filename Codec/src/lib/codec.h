@@ -47,6 +47,7 @@ class Codec
         Format::HeaderParams m_params;
         Frame<SIZE, SIZE> m_current;
         Frame<SIZE, SIZE> m_previous;
+        Frame<SIZE, SIZE> m_otherPrevious;
         std::vector<uint8_t> m_uncompressed;
         Format m_format;
         Context m_context;

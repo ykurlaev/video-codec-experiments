@@ -26,7 +26,7 @@ typename std::iterator_traits<OtherIter>::value_type LinearInterpolatingIterator
     typedef typename std::iterator_traits<OtherIter>::value_type T;
     T first = *m_first;
     T second = *m_second;
-    return first - m_firstX * ((second - first) / (m_secondX - m_firstX));
+    return first + m_firstX * ((second - first) / (m_secondX - m_firstX));
 }
 
 template <typename OtherIter>
@@ -41,8 +41,7 @@ template <typename OtherIter>
 LinearInterpolatingIterator<OtherIter> LinearInterpolatingIterator<OtherIter>::operator++(int)
 {
     LinearInterpolatingIterator<OtherIter> result(*this);
-    ++m_first;
-    ++m_second;
+    ++(*this);
     return result;
 }
 

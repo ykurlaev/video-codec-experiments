@@ -95,7 +95,7 @@ size_t Format::writeMacroblockParams(MacroblockParams params, uint8_t *ptr)
             result = 1;
             break;
         case P:
-            if(((x & 0xF8) == xSign) && ((y & 0xF8) == ySign))
+            if(((x & 0xFC) == xSign) && ((y & 0xFC) == ySign))
             {
                 *ptr = 0x80 | ((x & 0x07) << 3) | (y & 0x07);
                 result = 1;
@@ -113,8 +113,8 @@ size_t Format::writeMacroblockParams(MacroblockParams params, uint8_t *ptr)
             uint8_t y2 = static_cast<uint8_t>(params.m_yMotion2);
             uint8_t xSign2 = (((x2 >> 2) & 0x01) != 0) ? 0xFC : 0x00;
             uint8_t ySign2 = (((y2 >> 2) & 0x01) != 0) ? 0xFC : 0x00;
-            if(((x & 0xF8) == xSign) && ((y & 0xF8) == ySign) &&
-               ((x2 & 0xF8) == xSign2) && ((y2 & 0xF8) == ySign2))
+            if(((x & 0xFC) == xSign) && ((y & 0xFC) == ySign) &&
+               ((x2 & 0xFC) == xSign2) && ((y2 & 0xFC) == ySign2))
             {
                 *ptr = ((params.m_mode == P2) ? 0x40 : 0x60) | ((x & 0x07) << 1) | ((y & 0x04) >> 2);
                 *(ptr + 1) = ((y & 0x03) << 6) | ((x2 & 0x07) << 3) | (y2 & 0x07);
@@ -122,9 +122,9 @@ size_t Format::writeMacroblockParams(MacroblockParams params, uint8_t *ptr)
             }
             else
             {
-                *ptr = ((params.m_mode == P2) ? 0x50 : 0x70) | ((x & 0x70) >> 4);
-                *(ptr + 1) = ((x & 0x07) << 5) | ((y & 0x1F) >> 3);
-                *(ptr + 2) = ((y & 0x03) << 6) | ((x2 & 0xFC) >> 2);
+                *ptr = ((params.m_mode == P2) ? 0x50 : 0x70) | ((x & 0x78) >> 3);
+                *(ptr + 1) = ((x & 0x07) << 5) | ((y & 0x7C) >> 2);
+                *(ptr + 2) = ((y & 0x03) << 6) | ((x2 & 0x7E) >> 1);
                 *(ptr + 3) = ((x2 & 0x01) << 7) | (y2 & 0x7F);
                 result = 4;
             }            
@@ -165,10 +165,10 @@ size_t Format::readMacroblockParams(MacroblockParams &params, uint8_t *ptr)
             else
             {
                 uint8_t second = *(ptr + 1);
-                uint8_t third = *(ptr + 1);
-                uint8_t fourth = *(ptr + 1);
+                uint8_t third = *(ptr + 2);
+                uint8_t fourth = *(ptr + 3);
                 uVectors[0] = ((((first >> 3) & 0x01) != 0) ? 0x80 : 0x00) |
-                              ((first & 0x0F) << 3) | ((first & 0xE0) >> 5);
+                              ((first & 0x0F) << 3) | ((second & 0xE0) >> 5);
                 uVectors[1] = ((((second >> 4) & 0x01) != 0) ? 0x80 : 0x00) |
                               ((second & 0x1F) << 2) | ((third & 0xC0) >> 6);
                 uVectors[2] = ((((third >> 5) & 0x01) != 0) ? 0x80 : 0x00) |

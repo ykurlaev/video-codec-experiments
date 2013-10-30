@@ -35,7 +35,7 @@ void Macroblock::processForward(Format::MacroblockMode mode)
                                             m_frame->horizontalBegin(m_number + 1),
                                             m_previousFrames[0]->regionBegin(m_x * SIZE + m_params.m_xMotion,
                                                                              m_y * SIZE + m_params.m_yMotion,
-                                                                             16, 16));
+                                                                             SIZE, SIZE));
     }
     else if(m_params.m_mode == Format::I)
     {
@@ -45,17 +45,17 @@ void Macroblock::processForward(Format::MacroblockMode mode)
     {
         m_context->m_motionEstimator(*m_frame, *m_previousFrames[0], m_number,
                                      &m_params.m_xMotion, &m_params.m_yMotion);
-        m_context->m_motionEstimator(*m_frame, *m_previousFrames[0], m_number,
+        m_context->m_motionEstimator(*m_frame, *m_previousFrames[1], m_number,
                                      &m_params.m_xMotion2, &m_params.m_yMotion2);
         m_context->m_predictor.applyForward(m_frame->horizontalBegin(m_number),
                                             m_frame->horizontalBegin(m_number + 1),
                                             makeLinearInterpolatingIterator(
                                                 m_previousFrames[0]->regionBegin(m_x * SIZE + m_params.m_xMotion,
                                                                                  m_y * SIZE + m_params.m_yMotion,
-                                                                                 16, 16),
+                                                                                 SIZE, SIZE),
                                                 m_previousFrames[1]->regionBegin(m_x * SIZE + m_params.m_xMotion2,
                                                                                  m_y * SIZE + m_params.m_yMotion2,
-                                                                                 16, 16),
+                                                                                 SIZE, SIZE),
                                                 -1, (m_params.m_mode == Format::P2) ? -2 : 1));
     }
     data_t predictedAverage = (m_neighbors[0] && m_neighbors[0]->m_params.m_mode == m_params.m_mode) ?
@@ -105,16 +105,17 @@ void Macroblock::processReverse()
     }
     else
     {
-        m_PAverage = m_context->m_findAverage(m_frame->horizontalBegin(m_number),
-                                              m_frame->horizontalBegin(m_number + 1));
-        m_average = m_PAverage;
+        ((m_params.m_mode == Format::P) ? m_PAverage : m_P2Average) =
+            m_context->m_findAverage(m_frame->horizontalBegin(m_number),
+                                     m_frame->horizontalBegin(m_number + 1));
+        m_average = (m_params.m_mode == Format::P) ? m_PAverage : m_P2Average;
         if(m_params.m_mode == Format::P)
         {
             m_context->m_predictor.applyReverse(m_frame->horizontalBegin(m_number),
                                                 m_frame->horizontalBegin(m_number + 1),
                                                 m_previousFrames[0]->regionBegin(m_x * SIZE + m_params.m_xMotion,
                                                                                  m_y * SIZE + m_params.m_yMotion,
-                                                                                 16, 16));
+                                                                                 SIZE, SIZE));
         }
         else
         {
@@ -123,10 +124,10 @@ void Macroblock::processReverse()
                                                 makeLinearInterpolatingIterator(
                                                     m_previousFrames[0]->regionBegin(m_x * SIZE + m_params.m_xMotion,
                                                                                      m_y * SIZE + m_params.m_yMotion,
-                                                                                     16, 16),
+                                                                                     SIZE, SIZE),
                                                     m_previousFrames[1]->regionBegin(m_x * SIZE + m_params.m_xMotion2,
                                                                                      m_y * SIZE + m_params.m_yMotion2,
-                                                                                     16, 16),
+                                                                                     SIZE, SIZE),
                                                     -1, (m_params.m_mode == Format::P2) ? -2 : 1));
         }
     }
@@ -136,7 +137,8 @@ void Macroblock::processReverse()
 void Macroblock::chooseMode(Format::MacroblockMode mode)
 {
     m_params.m_mode = mode;
-    m_average = (m_params.m_mode == Format::I) ? m_IAverage : m_PAverage;
+    m_average = (m_params.m_mode == Format::I) ? m_IAverage :
+                    ((m_params.m_mode == Format::P) ? m_PAverage : m_P2Average);
 }
 
 }

@@ -1,5 +1,6 @@
 *.yuv
 *.compressed
+*.x264
 *.o
 *.a
 *.exe

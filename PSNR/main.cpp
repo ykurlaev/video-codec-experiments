@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
             mse += (first[i] - second[i]) * (first[i] - second[i]);
         }
         mse /= size;
-        float psnr = 20.f * log10f(255.f) - 10 * log10f(mse);
+        float psnr = 20.f * log10(255.f) - 10.f * log10(mse);
         if(verbose)
         {
             printf("%d %lld,%.2f,%.2f\n", c + 1, sad, mse, psnr);
