@@ -81,6 +81,20 @@ bool Format::readFrame()
     return true;
 }
 
+Format::MacroblockMode Format::getFrameMode()
+{
+    MacroblockParams params;
+    readMacroblockParams(params, m_precompressedBufferPtr);
+    if(params.m_mode == B)
+    {
+        return B;
+    }
+    else
+    {
+        return P;
+    }
+}
+
 size_t Format::writeMacroblockParams(MacroblockParams params, uint8_t *ptr)
 {
     size_t result = 0;

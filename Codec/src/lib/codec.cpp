@@ -43,10 +43,14 @@ Codec::Codec(Direction direction, FILE *input, FILE *output,
     : m_direction(direction), m_input(input), m_output(output),
       m_silent(silent), m_error(error), m_params(params),
       m_current(params.m_width, params.m_height), m_previous(params.m_width, params.m_height),
-      m_otherPrevious(params.m_width, params.m_height),
+      m_otherPrevious(params.m_width, params.m_height), m_next(params.m_width, params.m_height),
       m_uncompressed(m_current.getWidth() * m_current.getHeight()),
       m_format((direction == ENCODE) ? output : input, m_current.getWidth() * m_current.getHeight() * 4)
 {
+    for(int i = 0; i < 3; i++)
+    {
+        m_BFrames.push_back(Frame<SIZE, SIZE>(params.m_width, params.m_height));
+    }
     std::vector<Frame<SIZE> *> prevouisFrames;
     prevouisFrames.push_back(&m_previous);
     prevouisFrames.push_back(&m_otherPrevious);
@@ -98,69 +102,120 @@ bool Codec::encodeInternal()
         vector<uint8_t> IPrecompressed(16 * 16 * 4);
         vector<uint8_t> PPrecompressed(16 * 16 * 4);
         vector<uint8_t> P2Precompressed(16 * 16 * 4);
-        for(unsigned count = 1; ; count++)
+        int maxBCount = m_BFrames.size();
+        for(unsigned count = 1; ;)
         {
             swap(m_previous, m_current);
             swap(m_otherPrevious, m_current);
-            m_current.clear();
-            if(!m_byteArraySerializer.deserializeByteArray(m_input, &m_uncompressed[0], m_uncompressed.size()))
+            bool readen = false;
+            bool forceI = false;
+            int bCount = 0;
+            bool end = false;
+            while(!readen)
+            {
+                if(!m_byteArraySerializer.deserializeByteArray(m_input, &m_uncompressed[0], m_uncompressed.size()))
+                {
+                    end = true;
+                    break;
+                }
+                m_current.clear();
+                m_current.fromByteArray(&m_uncompressed[0]);
+                forceI = m_findSAD(m_current.horizontalBegin(), m_current.horizontalEnd(),
+                                         m_previous.horizontalBegin())
+                         > 25 * m_current.getAlignedWidth() * m_current.getAlignedHeight();
+                if((bCount < maxBCount) && !forceI)
+                {
+                    swap(m_current, m_BFrames[bCount]);
+                    bCount++;
+                }
+                else
+                {
+                    readen = true;
+                }
+            }
+            if(end)
             {
                 break;
-            }
-            if(!m_silent)
-            {
-                *m_error << count << " ";
-            }
-            m_current.fromByteArray(&m_uncompressed[0]);
-            bool forceI = false;
-            if(m_findSAD(m_current.horizontalBegin(), m_current.horizontalEnd(), m_previous.horizontalBegin())
-               > 25 * m_current.getAlignedWidth() * m_current.getAlignedHeight())
-            {
-                forceI = true;
             }
             int i = 0;
             for(vector<Macroblock>::iterator it = m_macroblocks.begin();
                 it != m_macroblocks.end(); ++it, i++)
             {
                 uint8_t *buffer = &IPrecompressed[0];
-                size_t PSize = ~0U;
-                uint8_t *PBuffer = &PPrecompressed[0];
-                size_t P2Size = ~0U;
-                uint8_t *P2Buffer = &P2Precompressed[0];
-                it->processForward(Format::I);
-                size_t size = it->precompressTo(&m_format, buffer);
-                it->processReverse();
-                if(!forceI)
+                size_t size = 0;
+                if(forceI)
                 {
-                    it->processForward(Format::P);
-                    PSize = it->precompressTo(&m_format, PBuffer);
+                    it->processForward(Format::I);
+                    size = it->precompressTo(&m_format, buffer);
                     it->processReverse();
-                    it->processForward(Format::P2);
-                    P2Size = it->precompressTo(&m_format, P2Buffer);
-                    it->processReverse();
-                }
-                if(!forceI && ((PSize < size) || (P2Size < size)))
-                {
-                    if(P2Size < PSize)
-                    {
-                        it->chooseMode(Format::P2);
-                        size = P2Size;
-                        buffer = P2Buffer;
-                    }
-                    else
-                    {
-                        it->chooseMode(Format::P);
-                        size = PSize;
-                        buffer = PBuffer;
-                    }
+                    it->chooseMode(Format::I);
                 }
                 else
                 {
-                    it->chooseMode(Format::I);
+                    Format::MacroblockMode macroblockMode = Format::I;
+                    it->processForward(Format::I);
+                    size = it->precompressTo(&m_format, buffer);
+                    it->processReverse();
+                    uint8_t *PBuffer = &PPrecompressed[0];
+                    it->processForward(Format::P);
+                    size_t PSize = it->precompressTo(&m_format, PBuffer);
+                    it->processReverse();
+                    if(PSize < size)
+                    {
+                        size = PSize;
+                        buffer = PBuffer;
+                        macroblockMode = Format::P;
+                    }
+                    uint8_t *P2Buffer = &P2Precompressed[0];
+                    it->processForward(Format::P2);
+                    size_t P2Size = it->precompressTo(&m_format, P2Buffer);
+                    it->processReverse();
+                    if(P2Size < size)
+                    {
+                        size = P2Size;
+                        buffer = P2Buffer;
+                        macroblockMode = Format::P2;
+                    }
+                    it->chooseMode(macroblockMode);
                 }
                 m_format.writeMacroblock(buffer, size);
             }
             m_format.writeFrame();
+            if(!m_silent)
+            {
+                *m_error << count++ << " ";
+            }
+            if(bCount != 0)
+            {
+                swap(m_current, m_otherPrevious);
+                swap(m_previous, m_otherPrevious);
+            }
+            for(int bFrame = 0; bFrame < bCount; bFrame++)
+            {
+                swap(m_current, m_BFrames[bFrame]);
+                int i = 0;
+                for(vector<Macroblock>::iterator it = m_macroblocks.begin();
+                    it != m_macroblocks.end(); ++it, i++)
+                {
+                    uint8_t *buffer = &IPrecompressed[0];
+                    size_t size = 0;
+                    it->processForward(Format::B);
+                    size = it->precompressTo(&m_format, buffer);
+                    it->processReverse();
+                    it->chooseMode(Format::B);
+                    m_format.writeMacroblock(buffer, size);
+                }
+                m_format.writeFrame();
+                if(!m_silent)
+                {
+                    *m_error << count++ << " ";
+                }
+            }
+            if(bCount != 0)
+            {
+                swap(m_previous, m_otherPrevious);
+                swap(m_current, m_otherPrevious);
+            }
         }
         if(!m_silent)
         {
@@ -200,8 +255,6 @@ bool Codec::decodeInternal()
 #endif
         for(unsigned count = 1; ; count++)
         {
-            swap(m_previous, m_current);
-            swap(m_otherPrevious, m_current);
             m_current.clear();
             if(!m_format.readFrame())
             {
@@ -211,6 +264,7 @@ bool Codec::decodeInternal()
             {
                 *m_error << count << " ";
             }
+            bool bFrame = m_format.getFrameMode() == Format::B;
             int i = 0;
             for(vector<Macroblock>::iterator it = m_macroblocks.begin();
                 it != m_macroblocks.end(); ++it, i++)
@@ -218,9 +272,23 @@ bool Codec::decodeInternal()
                 it->readFrom(&m_format);
                 it->processReverse();
             }
-            m_current.toByteArray(&m_uncompressed[0]);
-            m_byteArraySerializer.serializeByteArray(&m_uncompressed[0], m_uncompressed.size(), m_output);
+            if(!bFrame)
+            {
+                swap(m_current, m_previous);
+            }
+            if(count != 1)
+            {
+                m_current.toByteArray(&m_uncompressed[0]);
+                m_byteArraySerializer.serializeByteArray(&m_uncompressed[0], m_uncompressed.size(), m_output);
+            }
+            if(!bFrame)
+            {
+                swap(m_otherPrevious, m_current);
+            }
         }
+        swap(m_current, m_previous);
+        m_current.toByteArray(&m_uncompressed[0]);
+        m_byteArraySerializer.serializeByteArray(&m_uncompressed[0], m_uncompressed.size(), m_output);
         if(!m_silent)
         {
             *m_error << "Ok\n";

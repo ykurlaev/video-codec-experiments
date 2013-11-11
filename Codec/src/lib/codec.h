@@ -48,6 +48,8 @@ class Codec
         Frame<SIZE, SIZE> m_current;
         Frame<SIZE, SIZE> m_previous;
         Frame<SIZE, SIZE> m_otherPrevious;
+        Frame<SIZE, SIZE> m_next;
+        std::vector<Frame<SIZE, SIZE>> m_BFrames;
         std::vector<uint8_t> m_uncompressed;
         Format m_format;
         Context m_context;

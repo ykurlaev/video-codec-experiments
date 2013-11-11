@@ -35,6 +35,33 @@ inline Frame<MIN_N, MAX_N>::Frame(coord_t width, coord_t height)
 }
 
 template <uint32_t MIN_N, uint32_t MAX_N>
+inline Frame<MIN_N, MAX_N>::Frame(const Frame<MIN_N, MAX_N> &other)
+    : m_width(other.m_width), m_height(other.m_height),
+      m_alignedWidth(other.m_alignedWidth), m_alignedHeight(other.m_alignedHeight),
+      m_data(other.m_data), m_ptrs(m_alignedWidth * m_alignedHeight)
+{
+    coord_t blockX = 0, blockY = 0, i = 0;
+    for(int *ptr = &m_data[0]; ptr != &m_data[0] + m_data.size(); ptr++)
+    {
+        coord_t x = i % MIN_N, y = (i / MIN_N) % MIN_N;
+        m_ptrs[(blockY + y) * m_alignedWidth + blockX + x] = ptr;
+        i++;
+        if(i % (MIN_N * MIN_N) == 0)
+        {
+            coord_t block = i / (MAX_N * MAX_N);
+            blockX = (block % (m_alignedWidth / MAX_N)) * MAX_N;
+            blockY = (block / (m_alignedWidth / MAX_N)) * MAX_N;
+            for(uint32_t size = MAX_N / 2; size >= MIN_N; size /= 2)
+            {
+                coord_t relBlock = (i % (size * size * 4)) / (size * size);
+                blockX += (relBlock % 2) * size;
+                blockY += (relBlock / 2) * size;
+            }
+        }
+    }
+}
+
+template <uint32_t MIN_N, uint32_t MAX_N>
 inline coord_t Frame<MIN_N, MAX_N>::getWidth() const 
 {
     return m_width;

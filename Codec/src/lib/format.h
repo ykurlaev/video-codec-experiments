@@ -54,6 +54,7 @@ class Format
         void writeMacroblock(uint8_t *buffer, size_t size);
         void writeFrame();
         bool readFrame();
+        MacroblockMode getFrameMode();
         template <typename Iterator>
         MacroblockParams readMacroblock(Iterator begin, Iterator end);
     private:

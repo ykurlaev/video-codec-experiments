@@ -20,6 +20,7 @@ class Frame
         class ScanningBlockIterator;
     public:
         Frame(coord_t width, coord_t height);
+        Frame(const Frame &other);
         coord_t getWidth() const;
         coord_t getHeight() const;
         coord_t getAlignedWidth() const;

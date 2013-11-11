@@ -2,6 +2,8 @@
 #include "constantvalueiterator.h"
 #include "linearinterpolatingiterator.h"
 
+#include <iostream>
+
 namespace Codec
 {
 
