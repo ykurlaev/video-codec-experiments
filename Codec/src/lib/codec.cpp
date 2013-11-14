@@ -103,6 +103,7 @@ bool Codec::encodeInternal()
         vector<uint8_t> PPrecompressed(16 * 16 * 4);
         vector<uint8_t> P2Precompressed(16 * 16 * 4);
         int maxBCount = m_BFrames.size();
+        int noForceICount = 0;
         for(unsigned count = 1; ;)
         {
             swap(m_previous, m_current);
@@ -120,9 +121,14 @@ bool Codec::encodeInternal()
                 }
                 m_current.clear();
                 m_current.fromByteArray(&m_uncompressed[0]);
-                forceI = m_findSAD(m_current.horizontalBegin(), m_current.horizontalEnd(),
+                forceI = (m_findSAD(m_current.horizontalBegin(), m_current.horizontalEnd(),
                                          m_previous.horizontalBegin())
-                         > 25 * m_current.getAlignedWidth() * m_current.getAlignedHeight();
+                          > 25 * m_current.getAlignedWidth() * m_current.getAlignedHeight())
+                         || (noForceICount++ == 100);
+                if(forceI)
+                {
+                    noForceICount = 0;
+                }
                 if((bCount < maxBCount) && !forceI)
                 {
                     swap(m_current, m_BFrames[bCount]);
