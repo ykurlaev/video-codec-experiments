@@ -51,6 +51,7 @@ class Format
         HeaderParams readHeader();
         template <typename Iterator>
         size_t precompressMacroblock(MacroblockParams params, Iterator begin, Iterator end, uint8_t *buffer);
+        void setFrameMode(MacroblockMode frameMode);
         void writeMacroblock(uint8_t *buffer, size_t size);
         void writeFrame();
         bool readFrame();

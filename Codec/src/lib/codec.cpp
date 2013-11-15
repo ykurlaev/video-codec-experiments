@@ -143,6 +143,7 @@ bool Codec::encodeInternal()
             {
                 break;
             }
+            m_format.setFrameMode(Format::P);
             int i = 0;
             for(vector<Macroblock>::iterator it = m_macroblocks.begin();
                 it != m_macroblocks.end(); ++it, i++)
@@ -199,16 +200,38 @@ bool Codec::encodeInternal()
             for(int bFrame = 0; bFrame < bCount; bFrame++)
             {
                 swap(m_current, m_BFrames[bFrame]);
+                m_format.setFrameMode(Format::B);
                 int i = 0;
                 for(vector<Macroblock>::iterator it = m_macroblocks.begin();
                     it != m_macroblocks.end(); ++it, i++)
                 {
                     uint8_t *buffer = &IPrecompressed[0];
                     size_t size = 0;
-                    it->processForward(Format::B);
+                    Format::MacroblockMode macroblockMode = Format::I;
+                    it->processForward(Format::I);
                     size = it->precompressTo(&m_format, buffer);
                     it->processReverse();
-                    it->chooseMode(Format::B);
+                    uint8_t *PBuffer = &PPrecompressed[0];
+                    it->processForward(Format::P);
+                    size_t PSize = it->precompressTo(&m_format, PBuffer);
+                    it->processReverse();
+                    if(PSize < size)
+                    {
+                        size = PSize;
+                        buffer = PBuffer;
+                        macroblockMode = Format::P;
+                    }
+                    uint8_t *BBuffer = &P2Precompressed[0];
+                    it->processForward(Format::B);
+                    size_t BSize = it->precompressTo(&m_format, BBuffer);
+                    it->processReverse();
+                    if(BSize < size)
+                    {
+                        size = BSize;
+                        buffer = BBuffer;
+                        macroblockMode = Format::B;
+                    }
+                    it->chooseMode(macroblockMode);
                     m_format.writeMacroblock(buffer, size);
                 }
                 m_format.writeFrame();

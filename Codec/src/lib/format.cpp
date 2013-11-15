@@ -36,6 +36,12 @@ Format::HeaderParams Format::readHeader()
                         static_cast<QuantizationMode>(umode), static_cast<uint8_t>(uquality));
 }
 
+void Format::setFrameMode(MacroblockMode frameMode)
+{
+    uint8_t a[1] = { (frameMode == B) ? 1 : 0 };
+    m_zlibCompress(a, 1);
+}
+
 void Format::writeMacroblock(uint8_t *buffer, size_t size)
 {
     m_zlibCompress(buffer, size);
@@ -77,22 +83,13 @@ bool Format::readFrame()
     }
     m_zlibDecompress(&m_compressedBuffer[0], &m_precompressedBuffer[0],
                      size, m_precompressedBuffer.size());
-    m_precompressedBufferPtr = &m_precompressedBuffer[0];
+    m_precompressedBufferPtr = &m_precompressedBuffer[0] + 1;
     return true;
 }
 
 Format::MacroblockMode Format::getFrameMode()
 {
-    MacroblockParams params;
-    readMacroblockParams(params, m_precompressedBufferPtr);
-    if(params.m_mode == B)
-    {
-        return B;
-    }
-    else
-    {
-        return P;
-    }
+    return (m_precompressedBuffer[0] == 1) ? B : P;
 }
 
 size_t Format::writeMacroblockParams(MacroblockParams params, uint8_t *ptr)
