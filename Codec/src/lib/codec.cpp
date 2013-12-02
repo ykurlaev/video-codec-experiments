@@ -45,6 +45,7 @@ Codec::Codec(Direction direction, FILE *input, FILE *output,
       m_current(params.m_width, params.m_height), m_previous(params.m_width, params.m_height),
       m_otherPrevious(params.m_width, params.m_height), m_next(params.m_width, params.m_height),
       m_uncompressed(m_current.getWidth() * m_current.getHeight()),
+      m_IPrecompressed(SIZE * SIZE * 4), m_PPrecompressed(SIZE * SIZE * 4), m_P2Precompressed(SIZE * SIZE * 4),
       m_format((direction == ENCODE) ? output : input, m_current.getWidth() * m_current.getHeight() * 4)
 {
     for(int i = 0; i < 3; i++)
@@ -99,9 +100,6 @@ bool Codec::encodeInternal()
 #ifdef MEASURE_TIME
         clock_t begin = clock();
 #endif
-        vector<uint8_t> IPrecompressed(16 * 16 * 4);
-        vector<uint8_t> PPrecompressed(16 * 16 * 4);
-        vector<uint8_t> P2Precompressed(16 * 16 * 4);
         int maxBCount = m_BFrames.size();
         int noForceICount = 0;
         for(unsigned count = 1; ;)
@@ -143,51 +141,14 @@ bool Codec::encodeInternal()
             {
                 break;
             }
-            m_format.setFrameMode(Format::P);
-            int i = 0;
-            for(vector<Macroblock>::iterator it = m_macroblocks.begin();
-                it != m_macroblocks.end(); ++it, i++)
+            if(forceI)
             {
-                uint8_t *buffer = &IPrecompressed[0];
-                size_t size = 0;
-                if(forceI)
-                {
-                    it->processForward(Format::I);
-                    size = it->precompressTo(&m_format, buffer);
-                    it->processReverse();
-                    it->chooseMode(Format::I);
-                }
-                else
-                {
-                    Format::MacroblockMode macroblockMode = Format::I;
-                    it->processForward(Format::I);
-                    size = it->precompressTo(&m_format, buffer);
-                    it->processReverse();
-                    uint8_t *PBuffer = &PPrecompressed[0];
-                    it->processForward(Format::P);
-                    size_t PSize = it->precompressTo(&m_format, PBuffer);
-                    it->processReverse();
-                    if(PSize < size)
-                    {
-                        size = PSize;
-                        buffer = PBuffer;
-                        macroblockMode = Format::P;
-                    }
-                    uint8_t *P2Buffer = &P2Precompressed[0];
-                    it->processForward(Format::P2);
-                    size_t P2Size = it->precompressTo(&m_format, P2Buffer);
-                    it->processReverse();
-                    if(P2Size < size)
-                    {
-                        size = P2Size;
-                        buffer = P2Buffer;
-                        macroblockMode = Format::P2;
-                    }
-                    it->chooseMode(macroblockMode);
-                }
-                m_format.writeMacroblock(buffer, size);
+                processI();
             }
-            m_format.writeFrame();
+            else
+            {
+                processP();
+            }
             if(!m_silent)
             {
                 *m_error << count++ << " ";
@@ -200,41 +161,7 @@ bool Codec::encodeInternal()
             for(int bFrame = 0; bFrame < bCount; bFrame++)
             {
                 swap(m_current, m_BFrames[bFrame]);
-                m_format.setFrameMode(Format::B);
-                int i = 0;
-                for(vector<Macroblock>::iterator it = m_macroblocks.begin();
-                    it != m_macroblocks.end(); ++it, i++)
-                {
-                    uint8_t *buffer = &IPrecompressed[0];
-                    size_t size = 0;
-                    Format::MacroblockMode macroblockMode = Format::I;
-                    it->processForward(Format::I);
-                    size = it->precompressTo(&m_format, buffer);
-                    it->processReverse();
-                    uint8_t *PBuffer = &PPrecompressed[0];
-                    it->processForward(Format::P);
-                    size_t PSize = it->precompressTo(&m_format, PBuffer);
-                    it->processReverse();
-                    if(PSize < size)
-                    {
-                        size = PSize;
-                        buffer = PBuffer;
-                        macroblockMode = Format::P;
-                    }
-                    uint8_t *BBuffer = &P2Precompressed[0];
-                    it->processForward(Format::B);
-                    size_t BSize = it->precompressTo(&m_format, BBuffer);
-                    it->processReverse();
-                    if(BSize < size)
-                    {
-                        size = BSize;
-                        buffer = BBuffer;
-                        macroblockMode = Format::B;
-                    }
-                    it->chooseMode(macroblockMode);
-                    m_format.writeMacroblock(buffer, size);
-                }
-                m_format.writeFrame();
+                processB();
                 if(!m_silent)
                 {
                     *m_error << count++ << " ";
@@ -261,6 +188,98 @@ bool Codec::encodeInternal()
         return false;
     }
     return true;
+}
+
+void Codec::processI()
+{
+    m_format.setFrameMode(Format::P);
+    for(vector<Macroblock>::iterator it = m_macroblocks.begin();
+        it != m_macroblocks.end(); ++it)
+    {
+        uint8_t *buffer = &m_IPrecompressed[0];
+        it->processForward(Format::I);
+        size_t size = it->precompressTo(&m_format, buffer);
+        it->processReverse();
+        it->chooseMode(Format::I);
+        m_format.writeMacroblock(buffer, size);
+    }
+    m_format.writeFrame();
+}
+
+void Codec::processP()
+{
+    m_format.setFrameMode(Format::P);
+    for(vector<Macroblock>::iterator it = m_macroblocks.begin();
+        it != m_macroblocks.end(); ++it)
+    {
+        uint8_t *buffer = &m_IPrecompressed[0];
+        size_t size = 0;
+        Format::MacroblockMode macroblockMode = Format::I;
+        it->processForward(Format::I);
+        size = it->precompressTo(&m_format, buffer);
+        it->processReverse();
+        uint8_t *PBuffer = &m_PPrecompressed[0];
+        it->processForward(Format::P);
+        size_t PSize = it->precompressTo(&m_format, PBuffer);
+        it->processReverse();
+        if(PSize < size)
+        {
+            size = PSize;
+            buffer = PBuffer;
+            macroblockMode = Format::P;
+        }
+        uint8_t *P2Buffer = &m_P2Precompressed[0];
+        it->processForward(Format::P2);
+        size_t P2Size = it->precompressTo(&m_format, P2Buffer);
+        it->processReverse();
+        if(P2Size < size)
+        {
+            size = P2Size;
+            buffer = P2Buffer;
+            macroblockMode = Format::P2;
+        }
+        it->chooseMode(macroblockMode);
+        m_format.writeMacroblock(buffer, size);
+    }
+    m_format.writeFrame();
+}
+
+void Codec::processB()
+{
+    m_format.setFrameMode(Format::B);
+    for(vector<Macroblock>::iterator it = m_macroblocks.begin();
+        it != m_macroblocks.end(); ++it)
+    {
+        uint8_t *buffer = &m_IPrecompressed[0];
+        size_t size = 0;
+        Format::MacroblockMode macroblockMode = Format::I;
+        it->processForward(Format::I);
+        size = it->precompressTo(&m_format, buffer);
+        it->processReverse();
+        uint8_t *PBuffer = &m_PPrecompressed[0];
+        it->processForward(Format::P);
+        size_t PSize = it->precompressTo(&m_format, PBuffer);
+        it->processReverse();
+        if(PSize < size)
+        {
+            size = PSize;
+            buffer = PBuffer;
+            macroblockMode = Format::P;
+        }
+        uint8_t *BBuffer = &m_P2Precompressed[0];
+        it->processForward(Format::B);
+        size_t BSize = it->precompressTo(&m_format, BBuffer);
+        it->processReverse();
+        if(BSize < size)
+        {
+            size = BSize;
+            buffer = BBuffer;
+            macroblockMode = Format::B;
+        }
+        it->chooseMode(macroblockMode);
+        m_format.writeMacroblock(buffer, size);
+    }
+    m_format.writeFrame();
 }
 
 bool Codec::decodeInternal()

@@ -38,6 +38,9 @@ class Codec
               Format::HeaderParams params,
               bool silent, std::ostream *error);
         bool encodeInternal();
+        void processI();
+        void processP();
+        void processB();
         bool decodeInternal();
         Direction m_direction;
         FILE *m_input;
@@ -51,6 +54,9 @@ class Codec
         Frame<SIZE, SIZE> m_next;
         std::vector<Frame<SIZE, SIZE>> m_BFrames;
         std::vector<uint8_t> m_uncompressed;
+        std::vector<uint8_t> m_IPrecompressed;
+        std::vector<uint8_t> m_PPrecompressed;
+        std::vector<uint8_t> m_P2Precompressed;
         Format m_format;
         Context m_context;
         std::vector<Macroblock> m_macroblocks;
