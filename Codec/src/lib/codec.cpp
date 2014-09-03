@@ -286,8 +286,6 @@ bool Codec::decodeInternal()
 {
     try
     {
-        m_context.m_quantization.setParams(m_params.m_quantizationMode,
-                                           m_params.m_quality);
         if(!m_silent)
         {
             *m_error << m_params.m_width << "x" << m_params.m_height << "@"; 

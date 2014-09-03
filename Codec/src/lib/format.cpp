@@ -75,7 +75,7 @@ bool Format::readFrame()
     size_t n = fread(&m_compressedBuffer[0], 1, size, m_file);
     if(feof(m_file))
     {
-        return 0;
+        return false;
     }
     if(n != size)
     {
