@@ -6,11 +6,13 @@ namespace Codec
 {
 
 template <uint32_t MIN_N, uint32_t MAX_N>
-inline Frame<MIN_N, MAX_N>::Frame(coord_t width, coord_t height)
+inline Frame<MIN_N, MAX_N>::Frame(coord_t width, coord_t height,
+                                  uint8_t channels = 1, uint8_t subsampling = 1)
     : m_width(width), m_height(height),
       m_alignedWidth(((width + MAX_N - 1) / MAX_N) * MAX_N),
       m_alignedHeight(((height + MAX_N - 1) / MAX_N) * MAX_N),
-      m_data(m_alignedWidth * m_alignedHeight), m_ptrs(m_alignedWidth * m_alignedHeight)
+      m_data(channels, std::vector<data_t>(m_alignedWidth * m_alignedHeight)),
+      m_ptrs(channels, std::vector<data_t *>(m_alignedWidth * m_alignedHeight))
 {
     assert(MIN_N != 0 && MAX_N >= MIN_N);
     coord_t blockX = 0, blockY = 0, i = 0;

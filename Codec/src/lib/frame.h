@@ -19,32 +19,32 @@ class Frame
         class VerticalBlockIterator;
         class ScanningBlockIterator;
     public:
-        Frame(coord_t width, coord_t height);
+        Frame(coord_t width, coord_t height, uint8_t channels = 1, uint8_t subsampling = 1);
         Frame(const Frame &other);
         coord_t getWidth() const;
         coord_t getHeight() const;
         coord_t getAlignedWidth() const;
         coord_t getAlignedHeight() const;
         void clear();
-        void fromByteArray(const uint8_t *byteArray);
-        void toByteArray(uint8_t *byteArray);
-        RegionIterator begin();
+        void fromByteArray(const uint8_t *byteArray, uint8_t channel = 0);
+        void toByteArray(uint8_t *byteArray, uint8_t channel = 0);
+        RegionIterator begin(uint8_t channel = 0);
         RegionIterator end();
-        RegionIterator regionBegin(coord_t xstart, coord_t ystart, coord_t width, coord_t height);
+        RegionIterator regionBegin(coord_t xstart, coord_t ystart, coord_t width, coord_t height, uint8_t channel = 0);
         RegionIterator regionEnd();
-        HorizontalBlockIterator horizontalBegin(coord_t block = 0);
+        HorizontalBlockIterator horizontalBegin(coord_t block = 0, uint8_t channel = 0);
         HorizontalBlockIterator horizontalEnd();
-        VerticalBlockIterator verticalBegin(coord_t block = 0);
+        VerticalBlockIterator verticalBegin(coord_t block = 0, uint8_t channel = 0);
         VerticalBlockIterator verticalEnd();
-        ScanningBlockIterator scanningBegin(const coord_t *scan, coord_t block = 0);
+        ScanningBlockIterator scanningBegin(const coord_t *scan, coord_t block = 0, uint8_t channel = 0);
         ScanningBlockIterator scanningEnd();
     private:
         coord_t m_width;
         coord_t m_height;
         coord_t m_alignedWidth;
         coord_t m_alignedHeight;
-        std::vector<data_t> m_data;
-        std::vector<data_t *> m_ptrs;
+        std::vector<std::vector<data_t>> m_data;
+        std::vector<std::vector<data_t *>> m_ptrs;
         template <uint32_t MIN_M, uint32_t MAX_M>
         friend void swap(Frame<MIN_M, MAX_M> &first, Frame<MIN_M, MAX_M> &second);
 };
