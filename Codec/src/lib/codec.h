@@ -60,7 +60,7 @@ class Codec
         Normalize m_normalize;
         Predictor m_predictor;
         Precompressor m_precompressor;
-        Quantization m_quantization;
+        Quantization<2> m_quantization;
         ZlibCompress m_zlibCompress;
         ZlibDecompress m_zlibDecompress;
         Frame<16> m_current;

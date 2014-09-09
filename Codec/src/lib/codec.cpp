@@ -73,7 +73,7 @@ Codec::Codec(Direction direction, FILE *input, FILE *output,
       m_uncompressed(m_current.getWidth() * m_current.getHeight()),
       m_precompressed(m_current.getAlignedWidth() * m_current.getAlignedHeight() * Precompressor::MAX_BYTES),
       m_compressed(m_precompressed.size()),
-      m_macroblockIsInter((m_current.getAlignedWidth() * m_current.getAlignedHeight()) / (16 * 16) / 8),
+      m_macroblockIsInter(((m_current.getAlignedWidth() * m_current.getAlignedHeight()) / (16 * 16) + 7) / 8),
       m_motionVectorsX((m_current.getAlignedWidth() * m_current.getAlignedHeight()) / (16 * 16)),
       m_motionVectorsY((m_current.getAlignedWidth() * m_current.getAlignedHeight()) / (16 * 16)),
       m_precompressedMeta((m_macroblockIsInter.size() + m_motionVectorsX.size()
