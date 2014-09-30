@@ -9,7 +9,7 @@ using std::string;
 
 static int usage(const char *name)
 {
-    cerr << "Usage: " << name << " -e <file.y> <width> <height> <file.compressed> [<quality>] [<flat>] [-q]\n";
+    cerr << "Usage: " << name << " -e <file.y> <width> <height> <file.compressed> [<quality>] [<mode>] [-q]\n";
     cerr << "       " << name << " -d <file.compressed> <file.y>\n";
     return 1;
 }
@@ -50,20 +50,22 @@ int main(int argc, char *argv[])
                 quality = static_cast<uint8_t>(uquality);
             }
         }
-        bool flat = false;
+        Codec::Format::QuantizationMode mode = Codec::Format::JPEG;
         if(argc > 5)
         {
-            uint32_t uflat = 0;
-            istringstream(argv[5]) >> uflat;
-            flat = uflat != 0;
+            uint32_t umode = 0;
+            bool ok = (istringstream(argv[5]) >> umode).good();
+            if(!ok)
+            {
+                mode = static_cast<Codec::Format::QuantizationMode>(umode);
+            }
         }
         bool silent = false;
         if(argc > 6 && !strncmp(argv[6], "-q", 3))
         {
             silent = true;
         }
-        if(!Codec::Codec::encode(in, out, width, height, quality,
-                                 flat ? Codec::Format::FLAT : Codec::Format::JPEG, silent))
+        if(!Codec::Codec::encode(in, out, width, height, quality, mode, silent))
         {
             return 2;
         }

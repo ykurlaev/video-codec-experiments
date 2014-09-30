@@ -46,7 +46,8 @@ Codec::Codec(Direction direction, FILE *input, FILE *output,
       m_otherPrevious(params.m_width, params.m_height), m_next(params.m_width, params.m_height),
       m_uncompressed(m_current.getWidth() * m_current.getHeight()),
       m_IPrecompressed(SIZE * SIZE * 4), m_PPrecompressed(SIZE * SIZE * 4), m_P2Precompressed(SIZE * SIZE * 4),
-      m_format((direction == ENCODE) ? output : input, m_current.getWidth() * m_current.getHeight() * 4)
+      m_format((direction == ENCODE) ? output : input, m_current.getWidth() * m_current.getHeight() * 4),
+      m_desiredBitrate(0)
 {
     for(int i = 0; i < 3; i++)
     {
@@ -81,6 +82,12 @@ Codec::Codec(Direction direction, FILE *input, FILE *output,
         }
         m_macroblocks.push_back(Macroblock(&m_current, prevouisFrames,
                                            macroblock, neighbors, &m_context));
+    }
+    if(params.m_quantizationMode == Format::CBR)
+    {
+        m_desiredBitrate = params.m_quality * 64;
+        params.m_quantizationMode = Format::JPEG;
+        params.m_quality = 50;
     }
     m_context.m_quantization.setParams(params.m_quantizationMode, params.m_quality);
     if(direction == ENCODE)
@@ -143,11 +150,11 @@ bool Codec::encodeInternal()
             }
             if(forceI)
             {
-                processI();
+                process(Format::I);
             }
             else
             {
-                processP();
+                process(Format::P);
             }
             if(!m_silent)
             {
@@ -161,7 +168,7 @@ bool Codec::encodeInternal()
             for(int bFrame = 0; bFrame < bCount; bFrame++)
             {
                 swap(m_current, m_BFrames[bFrame]);
-                processB();
+                process(Format::B);
                 if(!m_silent)
                 {
                     *m_error << count++ << " ";
@@ -190,9 +197,22 @@ bool Codec::encodeInternal()
     return true;
 }
 
-void Codec::processI()
+void Codec::process(Format::MacroblockMode mode)
 {
-    m_format.setFrameMode(Format::P);
+    m_format.setFrameMode(mode == Format::B ? Format::B : Format::P);
+    typedef size_t (Codec::*func)();
+    func funcs[Format::B + 1] = { &Codec::processI, &Codec::processP, NULL, &Codec::processB };
+    size_t size = (this->*funcs[mode])();
+    m_format.writeFrame();
+    if(m_desiredBitrate != 0)
+    {
+        recalculateQuality(size);
+    }
+}
+
+size_t Codec::processI()
+{
+    size_t result = 0;
     for(vector<Macroblock>::iterator it = m_macroblocks.begin();
         it != m_macroblocks.end(); ++it)
     {
@@ -202,13 +222,14 @@ void Codec::processI()
         it->processReverse();
         it->chooseMode(Format::I);
         m_format.writeMacroblock(buffer, size);
+        result += size;
     }
-    m_format.writeFrame();
+    return result;
 }
 
-void Codec::processP()
+size_t Codec::processP()
 {
-    m_format.setFrameMode(Format::P);
+    size_t result = 0;
     for(vector<Macroblock>::iterator it = m_macroblocks.begin();
         it != m_macroblocks.end(); ++it)
     {
@@ -240,13 +261,14 @@ void Codec::processP()
         }
         it->chooseMode(macroblockMode);
         m_format.writeMacroblock(buffer, size);
+        result += size;
     }
-    m_format.writeFrame();
+    return result;
 }
 
-void Codec::processB()
+size_t Codec::processB()
 {
-    m_format.setFrameMode(Format::B);
+    size_t result = 0;
     for(vector<Macroblock>::iterator it = m_macroblocks.begin();
         it != m_macroblocks.end(); ++it)
     {
@@ -278,8 +300,9 @@ void Codec::processB()
         }
         it->chooseMode(macroblockMode);
         m_format.writeMacroblock(buffer, size);
+        result += size;
     }
-    m_format.writeFrame();
+    return result;
 }
 
 bool Codec::decodeInternal()
@@ -302,7 +325,8 @@ bool Codec::decodeInternal()
         for(unsigned count = 1; ; count++)
         {
             m_current.clear();
-            if(!m_format.readFrame())
+            Format::MacroblockMode frameMode;
+            if(!m_format.readFrame(&frameMode))
             {
                 break;
             }
@@ -310,7 +334,7 @@ bool Codec::decodeInternal()
             {
                 *m_error << count << " ";
             }
-            bool bFrame = m_format.getFrameMode() == Format::B;
+            bool bFrame = frameMode == Format::B;
             int i = 0;
             for(vector<Macroblock>::iterator it = m_macroblocks.begin();
                 it != m_macroblocks.end(); ++it, i++)
@@ -350,6 +374,12 @@ bool Codec::decodeInternal()
         return false;
     }
     return true;
+}
+
+void Codec::recalculateQuality(size_t currentBitrate)
+{
+    m_params.m_quality = static_cast<uint8_t>(m_params.m_quality * static_cast<float>(currentBitrate) / m_desiredBitrate) & 0xFE;
+    m_context.m_quantization.setParams(m_params.m_quantizationMode, m_params.m_quality);
 }
 
 }

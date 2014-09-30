@@ -38,8 +38,15 @@ Format::HeaderParams Format::readHeader()
 
 void Format::setFrameMode(MacroblockMode frameMode)
 {
-    uint8_t a[1] = { (frameMode == B) ? 1 : 0 };
-    m_zlibCompress(a, 1);
+    uint8_t a = (frameMode == B) ? 1 : 0;
+    m_zlibCompress(&a, 1);
+}
+
+void Format::setFrameParams(MacroblockMode frameMode, QuantizationMode quantizationMode, uint8_t quality)
+{
+    setFrameMode(frameMode);
+    uint8_t a = (quality & 0xFE) | (quantizationMode & 0x01);
+    m_zlibCompress(&a, 1);
 }
 
 void Format::writeMacroblock(uint8_t *buffer, size_t size)
@@ -60,7 +67,7 @@ void Format::writeFrame()
     m_precompressedBufferPtr = &m_precompressedBuffer[0];
 }
 
-bool Format::readFrame()
+bool Format::readFrame(MacroblockMode *frameMode, QuantizationMode *quantizationMode, uint8_t *quality)
 {
     uint32_t usize;
     if(!readUint32(usize))
@@ -81,15 +88,18 @@ bool Format::readFrame()
     {
         throw runtime_error("Can't read input stream");
     }
+    int metaSize = 1;
     m_zlibDecompress(&m_compressedBuffer[0], &m_precompressedBuffer[0],
                      size, m_precompressedBuffer.size());
-    m_precompressedBufferPtr = &m_precompressedBuffer[0] + 1;
+    *frameMode = (m_precompressedBuffer[0] == 1) ? B : P;
+    if(quantizationMode != NULL)
+    {
+        metaSize = 2;
+        *quantizationMode = static_cast<QuantizationMode>(m_precompressedBuffer[1] & 0x01);
+        *quality = m_precompressedBuffer[1] & 0xFE;
+    }
+    m_precompressedBufferPtr = &m_precompressedBuffer[0] + metaSize;
     return true;
-}
-
-Format::MacroblockMode Format::getFrameMode()
-{
-    return (m_precompressedBuffer[0] == 1) ? B : P;
 }
 
 size_t Format::writeMacroblockParams(MacroblockParams params, uint8_t *ptr)

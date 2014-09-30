@@ -4,9 +4,6 @@
 #include <cassert>
 #include <cstdio>
 #include <vector>
-//#ifndef DISABLE_VERBOSE
-//#include <ostream>
-//#endif //DISABLE_VERBOSE
 #include "precompressor.h"
 #include "util.h"
 #include "zlibcompress.h"
@@ -18,7 +15,7 @@ namespace Codec
 class Format
 {
     public:
-        enum QuantizationMode { FLAT = 0, JPEG = 1 };
+        enum QuantizationMode { FLAT = 0, JPEG = 1, CBR = 2 };
         struct HeaderParams
         {
             HeaderParams(coord_t width = 0, coord_t height = 0,
@@ -52,10 +49,10 @@ class Format
         template <typename Iterator>
         size_t precompressMacroblock(MacroblockParams params, Iterator begin, Iterator end, uint8_t *buffer);
         void setFrameMode(MacroblockMode frameMode);
+        void setFrameParams(MacroblockMode frameMode, QuantizationMode quantizationMode, uint8_t quality);
         void writeMacroblock(uint8_t *buffer, size_t size);
         void writeFrame();
-        bool readFrame();
-        MacroblockMode getFrameMode();
+        bool readFrame(MacroblockMode *frameMode, QuantizationMode *quantizationMode = NULL, uint8_t *quality = NULL);
         template <typename Iterator>
         MacroblockParams readMacroblock(Iterator begin, Iterator end);
     private:
@@ -71,10 +68,6 @@ class Format
         uint8_t *m_precompressedBufferPtr;
         std::vector<uint8_t> m_compressedBuffer;
 };
-
-//#ifndef DISABLE_VERBOSE
-//std::ostream &operator<<(std::ostream_iterator &stream, Format::HeaderParams headerParams);
-//#endif //DISABLE_VERBOSE
 
 }
 
