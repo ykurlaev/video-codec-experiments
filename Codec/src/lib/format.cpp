@@ -38,8 +38,14 @@ Format::HeaderParams Format::readHeader()
 
 void Format::setFrameMode(MacroblockMode frameMode)
 {
-    uint8_t a[1] = { (frameMode == B) ? 1 : 0 };
-    m_zlibCompress(a, 1);
+    uint8_t a = (frameMode == B) ? 1 : 0;
+    m_zlibCompress(&a, 1);
+}
+
+void Format::setFrameParams(MacroblockMode frameMode, QuantizationMode quantizationMode, uint8_t quality)
+{
+    setFrameMode(frameMode);
+    uint8_t a = (quality & 0xFE) | (quantizationMode & 0x01);
 }
 
 void Format::writeMacroblock(uint8_t *buffer, size_t size)
@@ -60,7 +66,7 @@ void Format::writeFrame()
     m_precompressedBufferPtr = &m_precompressedBuffer[0];
 }
 
-bool Format::readFrame()
+bool Format::readFrame(MacroblockMode *frameMode)
 {
     uint32_t usize;
     if(!readUint32(usize))
@@ -83,13 +89,9 @@ bool Format::readFrame()
     }
     m_zlibDecompress(&m_compressedBuffer[0], &m_precompressedBuffer[0],
                      size, m_precompressedBuffer.size());
+    *frameMode = (m_precompressedBuffer[0] == 1) ? B : P; 
     m_precompressedBufferPtr = &m_precompressedBuffer[0] + 1;
     return true;
-}
-
-Format::MacroblockMode Format::getFrameMode()
-{
-    return (m_precompressedBuffer[0] == 1) ? B : P;
 }
 
 size_t Format::writeMacroblockParams(MacroblockParams params, uint8_t *ptr)

@@ -143,11 +143,11 @@ bool Codec::encodeInternal()
             }
             if(forceI)
             {
-                processI();
+                process(Format::I);
             }
             else
             {
-                processP();
+                process(Format::P);
             }
             if(!m_silent)
             {
@@ -161,7 +161,7 @@ bool Codec::encodeInternal()
             for(int bFrame = 0; bFrame < bCount; bFrame++)
             {
                 swap(m_current, m_BFrames[bFrame]);
-                processB();
+                process(Format::B);
                 if(!m_silent)
                 {
                     *m_error << count++ << " ";
@@ -190,9 +190,18 @@ bool Codec::encodeInternal()
     return true;
 }
 
-void Codec::processI()
+void Codec::process(Format::MacroblockMode mode)
 {
-    m_format.setFrameMode(Format::P);
+    m_format.setFrameMode(mode == Format::B ? Format::B : Format::P);
+    typedef size_t (Codec::*func)();
+    func funcs[Format::B + 1] = { &Codec::processI, &Codec::processP, NULL, &Codec::processB };
+    (this->*funcs[mode])();
+    m_format.writeFrame();
+}
+
+size_t Codec::processI()
+{
+    size_t result = 0;
     for(vector<Macroblock>::iterator it = m_macroblocks.begin();
         it != m_macroblocks.end(); ++it)
     {
@@ -202,13 +211,14 @@ void Codec::processI()
         it->processReverse();
         it->chooseMode(Format::I);
         m_format.writeMacroblock(buffer, size);
+        result += size;
     }
-    m_format.writeFrame();
+    return result;
 }
 
-void Codec::processP()
+size_t Codec::processP()
 {
-    m_format.setFrameMode(Format::P);
+    size_t result = 0;
     for(vector<Macroblock>::iterator it = m_macroblocks.begin();
         it != m_macroblocks.end(); ++it)
     {
@@ -240,13 +250,14 @@ void Codec::processP()
         }
         it->chooseMode(macroblockMode);
         m_format.writeMacroblock(buffer, size);
+        result += size;
     }
-    m_format.writeFrame();
+    return result;
 }
 
-void Codec::processB()
+size_t Codec::processB()
 {
-    m_format.setFrameMode(Format::B);
+    size_t result = 0;
     for(vector<Macroblock>::iterator it = m_macroblocks.begin();
         it != m_macroblocks.end(); ++it)
     {
@@ -278,8 +289,9 @@ void Codec::processB()
         }
         it->chooseMode(macroblockMode);
         m_format.writeMacroblock(buffer, size);
+        result += size;
     }
-    m_format.writeFrame();
+    return result;
 }
 
 bool Codec::decodeInternal()
@@ -302,7 +314,8 @@ bool Codec::decodeInternal()
         for(unsigned count = 1; ; count++)
         {
             m_current.clear();
-            if(!m_format.readFrame())
+            Format::MacroblockMode frameMode;
+            if(!m_format.readFrame(&frameMode))
             {
                 break;
             }
@@ -310,7 +323,7 @@ bool Codec::decodeInternal()
             {
                 *m_error << count << " ";
             }
-            bool bFrame = m_format.getFrameMode() == Format::B;
+            bool bFrame = frameMode == Format::B;
             int i = 0;
             for(vector<Macroblock>::iterator it = m_macroblocks.begin();
                 it != m_macroblocks.end(); ++it, i++)

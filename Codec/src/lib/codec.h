@@ -38,9 +38,10 @@ class Codec
               Format::HeaderParams params,
               bool silent, std::ostream *error);
         bool encodeInternal();
-        void processI();
-        void processP();
-        void processB();
+        void process(Format::MacroblockMode mode);
+        size_t processI();
+        size_t processP();
+        size_t processB();
         bool decodeInternal();
         Direction m_direction;
         FILE *m_input;
