@@ -56,7 +56,7 @@ inline void MotionEstimator::operator()(Frame<MIN_N, MAX_N> &current, Frame<MIN_
         {
             prevX++;
             if(static_cast<coord_t>(prevX) + MAX_N >= macroblockWidth * MAX_N
-               || std::abs(static_cast<coord_t>(prevX) - macroblockX * MAX_N) >= 32)
+               || ::abs(static_cast<coord_t>(prevX) - macroblockX * MAX_N) >= 32)
             {
                 break;
             }
@@ -70,7 +70,7 @@ inline void MotionEstimator::operator()(Frame<MIN_N, MAX_N> &current, Frame<MIN_
         do
         {
             prevX--;
-            if(prevX < 0 || std::abs(static_cast<coord_t>(prevX) - macroblockX * MAX_N) >= 32)
+            if(prevX < 0 || ::abs(static_cast<coord_t>(prevX) - macroblockX * MAX_N) >= 32)
             {
                 break;
             }
@@ -85,7 +85,7 @@ inline void MotionEstimator::operator()(Frame<MIN_N, MAX_N> &current, Frame<MIN_
         {
             prevY++;
             if(static_cast<coord_t>(prevY) + MAX_N >= macroblockHeight * MAX_N
-               || std::abs(static_cast<coord_t>(prevY) - macroblockX * MAX_N) >= 32)
+               || ::abs(static_cast<coord_t>(prevY) - macroblockX * MAX_N) >= 32)
             {
                 break;
             }
@@ -99,7 +99,7 @@ inline void MotionEstimator::operator()(Frame<MIN_N, MAX_N> &current, Frame<MIN_
         do
         {
             prevY--;
-            if(prevY < 0 || std::abs(static_cast<coord_t>(prevY) - macroblockX * MAX_N) >= 32)
+            if(prevY < 0 || ::abs(static_cast<coord_t>(prevY) - macroblockX * MAX_N) >= 32)
             {
                 break;
             }

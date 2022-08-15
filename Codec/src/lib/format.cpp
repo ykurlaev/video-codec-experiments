@@ -38,7 +38,11 @@ Format::HeaderParams Format::readHeader()
 
 void Format::setFrameMode(MacroblockMode frameMode)
 {
+#ifdef __GNUC__
+    (void)frameMode;
+#else
     (void)frameMode,0;
+#endif
     uint8_t a = 0;
     m_zlibCompress(&a, 1);
 }
