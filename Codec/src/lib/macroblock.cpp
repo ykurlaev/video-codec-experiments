@@ -143,4 +143,9 @@ void Macroblock::chooseMode(Format::MacroblockMode mode)
                     ((m_params.m_mode == Format::P) ? m_PAverage : m_P2Average);
 }
 
+Format::MacroblockParams Macroblock::getParams()
+{
+    return m_params;
+}
+
 }

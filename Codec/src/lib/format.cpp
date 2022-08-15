@@ -38,7 +38,8 @@ Format::HeaderParams Format::readHeader()
 
 void Format::setFrameMode(MacroblockMode frameMode)
 {
-    uint8_t a = (frameMode == B) ? 1 : 0;
+    (void)frameMode,0;
+    uint8_t a = 0;
     m_zlibCompress(&a, 1);
 }
 
@@ -91,7 +92,7 @@ bool Format::readFrame(MacroblockMode *frameMode, QuantizationMode *quantization
     int metaSize = 1;
     m_zlibDecompress(&m_compressedBuffer[0], &m_precompressedBuffer[0],
                      size, m_precompressedBuffer.size());
-    *frameMode = (m_precompressedBuffer[0] == 1) ? B : P;
+    *frameMode = P;
     if(quantizationMode != NULL)
     {
         metaSize = 2;
@@ -129,7 +130,6 @@ size_t Format::writeMacroblockParams(MacroblockParams params, uint8_t *ptr)
             }
             break;
         case P2:
-        case B:
             uint8_t x2 = static_cast<uint8_t>(params.m_xMotion2);
             uint8_t y2 = static_cast<uint8_t>(params.m_yMotion2);
             uint8_t xSign2 = (((x2 >> 2) & 0x01) != 0) ? 0xFC : 0x00;
@@ -169,7 +169,7 @@ size_t Format::readMacroblockParams(MacroblockParams &params, uint8_t *ptr)
         }
         else
         {
-            params.m_mode = ((first & 0x20) == 0) ? P2 : B;
+            params.m_mode = P2;
             if((first & 0x10) == 0)
             {
                 uint8_t second = *(ptr + 1);

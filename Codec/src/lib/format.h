@@ -28,7 +28,7 @@ class Format
             QuantizationMode m_quantizationMode;
             uint8_t m_quality;
         };
-        enum MacroblockMode { I = 0, P = 1, P2 = 2, B = 3 };
+        enum MacroblockMode { I = 0, P = 1, P2 = 2 };
         struct MacroblockParams
         {
             MacroblockParams()

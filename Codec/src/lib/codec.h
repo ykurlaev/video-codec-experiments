@@ -41,7 +41,6 @@ class Codec
         void process(Format::MacroblockMode mode);
         size_t processI();
         size_t processP();
-        size_t processB();
         bool decodeInternal();
         void recalculateQuality(size_t currentBitrate);
         Direction m_direction;
@@ -53,8 +52,6 @@ class Codec
         Frame<SIZE, SIZE> m_current;
         Frame<SIZE, SIZE> m_previous;
         Frame<SIZE, SIZE> m_otherPrevious;
-        Frame<SIZE, SIZE> m_next;
-        std::vector<Frame<SIZE, SIZE>> m_BFrames;
         std::vector<uint8_t> m_uncompressed;
         std::vector<uint8_t> m_IPrecompressed;
         std::vector<uint8_t> m_PPrecompressed;
@@ -65,6 +62,8 @@ class Codec
         FindSAD m_findSAD;
         ByteArraySerializer m_byteArraySerializer; //###
         size_t m_desiredBitrate;
+        uint32_t m_oldsad;
+        int32_t m_oldsaddiff;
 };
 
 }

@@ -46,6 +46,7 @@ class Macroblock
         void readFrom(Format *format);
         void processReverse();
         void chooseMode(Format::MacroblockMode mode);
+        Format::MacroblockParams getParams();
     private:
         Frame<SIZE> *m_frame;
         std::vector<Frame<SIZE> *> m_previousFrames;
