@@ -29,31 +29,33 @@ int main(int argc, char *argv[])
     int size = width * height;
     char *first = new char[size];
     char *second = new char[size];
-    long long max_sad = 0;
+    float max_msad = 0.f;
     float max_mse = 0.f;
     float min_psnr = 999999.f;
-    float avg_sad = 0.f;
+    float avg_msad = 0.f;
     float avg_mse = 0.f;
     float avg_psnr = 0.f;
     int c = 0;
     while(fread(first, 1, size, first_file) == size && fread(second, 1, size, second_file) == size)
     {
-        long long sad = 0;
+        float msad = 0.f;
         float mse = 0.f;
-        for(int i = 0; i < width * height; i++)
+        for(int i = 0; i < size; i++)
         {
-            sad += abs(first[i] - second[i]);
-            mse += (first[i] - second[i]) * (first[i] - second[i]);
+            float diff = static_cast<float>(abs(first[i] - second[i]));
+            msad += diff;
+            mse += diff * diff;
         }
+        msad /= size;
         mse /= size;
         float psnr = 20.f * log10(255.f) - 10.f * log10(mse);
         if(verbose)
         {
-            printf("%d %lld,%.2f,%.2f\n", c + 1, sad, mse, psnr);
+            printf("%d %.2f,%.2f,%.2f\n", c + 1, msad, mse, psnr);
         }
-        if(sad > max_sad)
+        if(msad > max_msad)
         {
-            max_sad = sad;
+            max_msad = msad;
         }
         if(mse > max_mse)
         {
@@ -63,16 +65,16 @@ int main(int argc, char *argv[])
         {
             min_psnr = psnr;
         }
-        avg_sad += sad;
+        avg_msad += msad;
         avg_mse += mse;
         avg_psnr += psnr;
         c++;
     }
-    avg_sad /= c;
+    avg_msad /= c;
     avg_mse /= c;
     avg_psnr /= c;
-    printf("worst %lld,%.2f,%.2f\n", max_sad, max_mse, min_psnr);
-    printf("average %.2f,%.2f,%.2f\n", avg_sad, avg_mse, avg_psnr);
+    printf("worst %.2f,%.2f,%.2f\n", max_msad, max_mse, min_psnr);
+    printf("average %.2f,%.2f,%.2f\n", avg_msad, avg_mse, avg_psnr);
     fclose(first_file);
     fclose(second_file);
     delete[] first;
